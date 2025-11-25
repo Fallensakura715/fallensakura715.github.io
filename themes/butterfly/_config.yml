@@ -46,7 +46,7 @@ code_blocks:
 # Formal:
 #   icon: link || the description || color
 social:
-  # fab fa-github: https://github.com/xxxxx || Github || '#24292e'
+  fab fa-github: https://github.com/fallensakura715 || Github || '#24292e'
   fas fa-envelope: mailto:fallensakura715@gmail.com || Email || '#4a7dbe'
 
 # --------------------------------------
@@ -287,7 +287,7 @@ aside:
     description:
     button:
       enable: true
-      icon: fab fa-github
+      icon: https://avatars.githubusercontent.com/u/172838098?s=400&u=6df24bc8c28898f7cab164afa10b7c3b95b5cb8e&v=4
       text: Follow Me
       link: https://github.com/fallensakura715
   card_announcement:
