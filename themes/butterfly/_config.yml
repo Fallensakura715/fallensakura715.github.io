@@ -11,17 +11,22 @@
 
 nav:
   # Navigation bar logo image
-  logo:
+  logo: https://avatars.githubusercontent.com/u/172838098?v=4
   display_title: true
   display_post_title: true
   # Whether to fix navigation bar
   fixed: false
 
 menu:
-  # Home: / || fas fa-home
-  # List||fas fa-list:
-  #   Music: /music/ || fas fa-music
-  #   Movie: /movies/ || fas fa-video
+  Home: / || fas fa-home
+  Archives: /archives/ || fas fa-archive
+  Categories: /categories/ || fas fa-folder-open
+  Tags: /tags/ || fas fa-tags
+  Links: /link/ || fas fa-link
+  List||fas fa-list:
+    Music: /music/ || fas fa-music
+    Movie: /movies/ || fas fa-video
+  About: /about/ || fas fa-heart
 
 # --------------------------------------
 # Code Blocks Settings
@@ -48,15 +53,14 @@ code_blocks:
 social:
   fab fa-github: https://github.com/fallensakura715 || Github || '#24292e'
   fas fa-envelope: mailto:fallensakura715@gmail.com || Email || '#4a7dbe'
-
 # --------------------------------------
 # Image Settings
 # --------------------------------------
 
-favicon: /img/favicon.png
+favicon: https://avatars.githubusercontent.com/u/172838098?v=4
 
 avatar:
-  img: /img/butterfly-icon.png
+  img: https://avatars.githubusercontent.com/u/172838098
   effect: false
 
 # Disable all banner images
@@ -145,11 +149,11 @@ post_meta:
 # The position of site info, eg: 300px/300em/300rem/10%
 index_site_info_top:
 # The height of top_img, eg: 300px/300em/300rem
-index_top_img_height:
+index_top_img_height: 300px
 
 # The subtitle on homepage
 subtitle:
-  enable: false
+  enable: true
   # Typewriter Effect
   effect: true
   # Customize typed.js
@@ -232,7 +236,7 @@ related_post:
   # Number of posts displayed
   limit: 6
   # Choose: created / updated
-  date_type: created
+  date_type: updated
 
 # Choose: 1 / 2 / false
 # 1: The 'next post' will link to old post
@@ -292,13 +296,13 @@ aside:
       link: https://github.com/fallensakura715
   card_announcement:
     enable: true
-    content: This is my Blog
+    content: 'nav.falnsakura.top'
   card_recent_post:
     enable: true
     # If set 0 will show all
     limit: 5
     # Sort: date / updated
-    sort: date
+    sort: updated
     sort_order:
   card_newest_comments:
     enable: false
@@ -428,7 +432,7 @@ copy:
 
 # Need to install the hexo-wordcount plugin
 wordcount:
-  enable: false
+  enable: true
   # Display the word count of the article in post meta
   post_wordcount: true
   # Display the time to read the article in post meta
@@ -452,7 +456,7 @@ busuanzi:
 math:
   # Choose: mathjax, katex
   # Leave it empty if you don't need math
-  use:
+  use: katex
   per_page: true
   hide_scrollbar: false
 
@@ -464,13 +468,13 @@ math:
 
   katex:
     # Enable the copy KaTeX formula
-    copy_tex: false
+    copy_tex: true
 
 # --------------------------------------
 # Search
 # --------------------------------------
 
-search:
+search: 
   # Choose: algolia_search / local_search / docsearch
   # leave it empty if you don't need search
   use:
@@ -511,17 +515,17 @@ search:
 share:
   # Choose: sharejs / addtoany
   # Leave it empty if you don't need share
-  use: sharejs
+  use: addtoany
 
   # Share.js
   # https://github.com/overtrue/share.js
   sharejs:
-    sites: facebook,x,wechat,weibo,qq
+    sites: facebook,x,wechat,qq
 
   # AddToAny
   # https://www.addtoany.com/
   addtoany:
-    item: facebook,x,wechat,sina_weibo,facebook_messenger,email,copy_link
+    item: facebook,x,telegram,wechat,qzone,email,copy_link
 
 # --------------------------------------
 # Comments System
@@ -532,12 +536,12 @@ comments:
   # Leave it empty if you don't need comments
   # Choose: Disqus/Disqusjs/Livere/Gitalk/Valine/Waline/Utterances/Facebook Comments/Twikoo/Giscus/Remark42/Artalk
   # Format of two comments system : Disqus,Waline
-  use:
+  use: Gitalk
   # Display the comment name next to the button
   text: true
   # Lazyload: The comment system will be load when comment element enters the browser's viewport.
   # If you set it to true, the comment count will be invalid
-  lazyload: false
+  lazyload: true
   # Display comment count in post's top_img
   count: false
   # Display comment count in Home Page
@@ -565,11 +569,11 @@ livere:
 # Gitalk
 # https://github.com/gitalk/gitalk
 gitalk:
-  client_id:
-  client_secret:
-  repo:
-  owner:
-  admin:
+  client_id: Ov23lieyrim7kfufRriA
+  client_secret: c9fcc249c27a897bc2868c30dbd7ab191aeb0963
+  repo: fallensakura715.github.io
+  owner: fallensakura715
+  admin: fallensakura715
   option:
 
 # Valine
@@ -687,7 +691,7 @@ crisp:
 baidu_analytics:
 
 # https://analytics.google.com/analytics/web/
-google_analytics:
+google_analytics: G-WTFDF5BG52
 
 # https://www.cloudflare.com/zh-tw/web-analytics/
 cloudflare_analytics:

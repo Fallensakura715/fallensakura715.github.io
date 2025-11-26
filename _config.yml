@@ -4,12 +4,12 @@
 
 # Site
 title: Fallensakura
-subtitle: ''
-description: ''
+subtitle: 'Personal Homepage'
+description: 'Miracle, a word outside my days.'
 keywords: blog
 author: fallensakura715
 language:
-- zh-cn
+- zh-CN
 - en
 timezone: 'Asia/Shanghai'
 
@@ -107,3 +107,8 @@ deploy:
   type: git
   repository: https://github.com/fallensakura715/fallensakura715.github.io.git
   branch: main
+
+# i18n
+i18n:
+  type: [page, post]
+  generator: [archive, category, tag, index]
