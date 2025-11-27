@@ -11,7 +11,7 @@
 
 nav:
   # Navigation bar logo image
-  logo: https://avatars.githubusercontent.com/u/172838098?v=4
+  logo: fas fa-home
   display_title: true
   display_post_title: true
   # Whether to fix navigation bar
@@ -20,13 +20,12 @@ nav:
 menu:
   Home: / || fas fa-home
   Archives: /archives/ || fas fa-archive
-  Categories: /categories/ || fas fa-folder-open
-  Tags: /tags/ || fas fa-tags
-  Links: /link/ || fas fa-link
-  List||fas fa-list:
+  Links: /links/ || fas fa-link
+  Misc||fas fa-list:
+    Categories: /categories/ || fas fa-folder-open
+    Tags: /tags/ || fas fa-tags
     Music: /music/ || fas fa-music
-    Movie: /movies/ || fas fa-video
-  About: /about/ || fas fa-heart
+    About: /about/ || fas fa-heart
 
 # --------------------------------------
 # Code Blocks Settings
@@ -57,7 +56,7 @@ social:
 # Image Settings
 # --------------------------------------
 
-favicon: https://avatars.githubusercontent.com/u/172838098?v=4
+favicon: fas fa-home
 
 avatar:
   img: https://avatars.githubusercontent.com/u/172838098
@@ -536,7 +535,7 @@ comments:
   # Leave it empty if you don't need comments
   # Choose: Disqus/Disqusjs/Livere/Gitalk/Valine/Waline/Utterances/Facebook Comments/Twikoo/Giscus/Remark42/Artalk
   # Format of two comments system : Disqus,Waline
-  use: Gitalk
+  use: Giscus
   # Display the comment name next to the button
   text: true
   # Lazyload: The comment system will be load when comment element enters the browser's viewport.
@@ -575,7 +574,8 @@ gitalk:
   owner: fallensakura715
   admin: fallensakura715
   option:
-
+  reactions_enabled: "0"
+  input_position: "top"
 # Valine
 # https://valine.js.org
 valine:
@@ -633,9 +633,9 @@ twikoo:
 # Giscus
 # https://giscus.app/
 giscus:
-  repo:
-  repo_id:
-  category_id:
+  repo: fallensakura715/fallensakura715.github.io
+  repo_id: R_kgDOQbLWgA
+  category_id: DIC_kwDOQbLWgM4CzGz5
   light_theme: light
   dark_theme: dark
   js:

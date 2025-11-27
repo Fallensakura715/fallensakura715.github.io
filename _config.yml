@@ -112,3 +112,16 @@ deploy:
 i18n:
   type: [page, post]
   generator: [archive, category, tag, index]
+
+# HexoPlusPlus Talk
+# see https://hexoplusplus.js.org
+hpptalk:
+  enable: true 
+  domain: hpp.falnsakura.top
+  path: https://avatars.githubusercontent.com/u/172838098
+  limit:
+  start:
+  js:
+  css:
+  option:
+  front_matter:

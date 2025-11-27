@@ -1577,6 +1577,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"hexo-butterfly-hpptalk@npm:^1.0.4":
+  version: 1.0.4
+  resolution: "hexo-butterfly-hpptalk@npm:1.0.4"
+  dependencies:
+    pug: "npm:^3.0.2"
+  checksum: 10c0/0e2a51f5791a575da63e72420009a9839d7c49de6fc35e8d3477403959556b66bd2cee9cb1f67dc7068b3b95574e89757142732d6bcc30ea985430d20e3d261a
+  languageName: node
+  linkType: hard
+
 "hexo-cli@npm:^4.3.2":
   version: 4.3.2
   resolution: "hexo-cli@npm:4.3.2"
@@ -1777,6 +1786,7 @@ __metadata:
     gitalk: "npm:^1.8.0"
     hexo: "npm:^8.0.0"
     hexo-algoliasearch: "npm:^2.0.1"
+    hexo-butterfly-hpptalk: "npm:^1.0.4"
     hexo-deployer-git: "npm:^4.0.0"
     hexo-generator-archive: "npm:^2.0.0"
     hexo-generator-category: "npm:^2.0.0"
