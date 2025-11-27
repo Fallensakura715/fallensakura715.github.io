@@ -9,8 +9,8 @@ description: 'Miracle, a word outside my days.'
 keywords: blog
 author: fallensakura715
 language:
-- zh-CN
 - en
+- zh-CN
 timezone: 'Asia/Shanghai'
 
 # URL
