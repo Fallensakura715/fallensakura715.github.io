@@ -3,21 +3,21 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Fallensakura
+title: Fallen Sakura
 subtitle: 'Personal Homepage'
 description: 'Miracle, a word outside my days.'
 keywords: blog
 author: fallensakura715
 language:
-- en
-- zh-CN
+  - en
+  - zh-CN
 timezone: 'Asia/Shanghai'
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
 url: https://fallensakura715.github.io/
 root: /
-permalink: :month/:day/:year/:title/
+permalink: :year/:day/:title/
 permalink_defaults:
 pretty_urls:
   trailing_index: true # Set to false to remove trailing 'index.html' from permalinks
@@ -125,3 +125,23 @@ hpptalk:
   css:
   option:
   front_matter:
+
+aplayer:
+  # Public 目录下脚本目录路径，默认: 'assets/js'
+  script_dir: 
+  # Public 目录下样式目录路径，默认: 'assets/css'             
+  style_dir: 
+  # 引用 APlayer.js 外部 CDN 地址 (默认不开启)                 
+  cdn: 
+  # 引用 APlayer.css 外部 CDN 地址 (默认不开启)          
+  style_cdn: 
+  # MetingJS 支持
+  meting: true
+  # 自定义 Meting API 地址                    
+  meting_api: 
+  # 引用 Meting.js 外部 CDN 地址 (默认不开启)   
+  meting_cdn: 
+  # 自动插入 Aplayer.js 与 Meting.js 资源脚本, 默认开启 
+  asset_inject: false      
+  # 老版本参数，功能与参数 cdn 相同               
+  externalLink:   

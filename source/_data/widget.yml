@@ -2,6 +2,6 @@ bottom:
   - class_name: user-map
     id_name: user-map
     name: Visitor Map
-    icon: fas fa-heartbeat
+    icon: fas fa-location-dot
     order:
     html: '<script type="text/javascript" id="mapmyvisitors" src="//mapmyvisitors.com/map.js?cl=488ccc&w=a&t=n&d=CVu5j5K2JpwCU0bcJOQR7H4TzI5TCm2bTSWc622Dfh0&co=ffffff&cmo=3acc3a&cmn=ff5353&ct=808080"></script>'

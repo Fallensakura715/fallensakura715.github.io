@@ -1,5 +1,5 @@
 ---
-title: Link
-date: 2025-11-26 13:25:18
-type: "'link'"
+title: link
+date: 2025-11-28 15:32:23
+type: 'link'
 ---
