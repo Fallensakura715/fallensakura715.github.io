@@ -12,6 +12,7 @@
     "version": "8.1.1"
   },
   "dependencies": {
+    "@barry-flynn/hexo-github-calendar": "^1.0.4",
     "gitalk": "^1.8.0",
     "hexo": "^8.0.0",
     "hexo-algoliasearch": "^2.0.1",
