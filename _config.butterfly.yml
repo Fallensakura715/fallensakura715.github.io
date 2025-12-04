@@ -299,7 +299,7 @@ aside:
       link: https://github.com/fallensakura715
   card_announcement:
     enable: true
-    content: '国内优选域名: nav.falnsakura.top'
+    content: '国内优选域名: nav.falnsakura.top, www.falnsakura.top'
   card_recent_post:
     enable: false
     # If set 0 will show all
