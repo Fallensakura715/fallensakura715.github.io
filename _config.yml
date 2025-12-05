@@ -162,6 +162,6 @@ githubcalendar:
   mobile_minheight: 0px  # 手机端最小高度
   color: "['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39']" # 经典的 GitHub 绿色系
   api: https://github-contrib.falnsakura.top/ # 公共 API
-  calendar_js: https://cdn.jsdelivr.net/gh/barry-flynn/hexo-github-calendar/hexo_githubcalendar.js # 官方 JS CDN
+  # calendar_js: https://cdn.jsdelivr.net/gh/barry-flynn/hexo-github-calendar/hexo_githubcalendar.js # 官方 JS CDN
   # 建议将上面的 calendar_js 注释掉，使用下面的本地路径（见第三步）
-  # calendar_js: /js/hexo_githubcalendar.js
+  calendar_js: /js/hexo_githubcalendar.js
