@@ -1,7 +1,7 @@
 function GithubCalendar(git_githubapiurl, git_color, git_user) {
   if (document.getElementById('github_container')) {
     var github_canlendar = (git_user, git_githubapiurl, git_color) => {
-      var git_month = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+      var git_month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       var git_monthchange = [];
       var git_oneyearbeforeday = '';
       var git_thisday = '';
@@ -22,14 +22,13 @@ function GithubCalendar(git_githubapiurl, git_color, git_user) {
       var git_montharrbefore = [];
       var git_monthindex = 0;
 
-      // Retina 适配：返回逻辑高度（CSS 像素），并设置物理尺寸
+      // Retina 适配
       var retinaCanvas = (canvas, context, ratio) => {
         var canvasWidth = document.getElementById("gitcalendarcanvasbox").offsetWidth;
         canvas.style.width = canvasWidth + 'px';
         canvas.style.height = (9 * 0.96 * canvasWidth / git_data.length) + 'px';
         canvas.width = canvasWidth * ratio;
         canvas.height = (9 * 0.96 * canvasWidth / git_data.length) * ratio;
-        // 不在这里 scale，改用 setTransform 统一设置
         return canvas.height / ratio;
       };
 
@@ -41,26 +40,49 @@ function GithubCalendar(git_githubapiurl, git_color, git_user) {
           var github_calendar_c = document.getElementById("gitcanvas");
           var github_calendar_ctx = github_calendar_c.getContext("2d");
 
-          // 复位矩阵、清空
           github_calendar_ctx.setTransform(1, 0, 0, 1, 0, 0);
           github_calendar_ctx.clearRect(0, 0, github_calendar_c.width, github_calendar_c.height);
 
-          // 初始化尺寸
           var logicalHeight = retinaCanvas(github_calendar_c, github_calendar_ctx, ratio);
           var logicalWidth = document.getElementById("gitcalendarcanvasbox").offsetWidth;
 
-          // 统一使用 setTransform 应用缩放，避免多次 scale 叠加
           github_calendar_ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
           git_positionplusdata = [];
 
-          // 逻辑像素尺寸
           var linemaxwitdh = logicalHeight / 9;
           var lineminwitdh = 0.8 * linemaxwitdh;
-          var setposition = {
-            x: 0.02 * logicalWidth,
-            y: 0.025 * logicalWidth
+          var itemRadius = lineminwitdh / 4;
+
+          var drawRoundedRect = (ctx, x, y, width, height, radius) => {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.arcTo(x + width, y, x + width, y + height, radius);
+            ctx.arcTo(x + width, y + height, x, y + height, radius);
+            ctx.arcTo(x, y + height, x, y, radius);
+            ctx.arcTo(x, y, x + width, y, radius);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(27,31,36,0.12)';
+            ctx.lineWidth = 1 / ratio;
+            ctx.stroke();
           };
+
+          var startX = 0.038 * logicalWidth;
+          var setposition = { x: startX, y: 0.025 * logicalWidth };
+
+          var monthPositions = [];
+          var prevMonth = null;
+          for (var w = 0; w < git_data.length; w++) {
+            var week = git_data[w];
+            if (!week || week.length === 0) continue;
+            var d = new Date(week[0].date);
+            var m = d.getMonth();
+            if (prevMonth === null || m !== prevMonth) {
+              monthPositions.push({ label: git_month[m], x: startX + w * linemaxwitdh });
+              prevMonth = m;
+            }
+          }
 
           for (var week in git_data) {
             weekdata = git_data[week];
@@ -76,7 +98,8 @@ function GithubCalendar(git_githubapiurl, git_color, git_user) {
               dataitem.y = setposition.y;
               git_positionplusdata.push(dataitem);
 
-              github_calendar_ctx.fillRect(setposition.x, setposition.y, lineminwitdh, lineminwitdh);
+              drawRoundedRect(github_calendar_ctx, setposition.x, setposition.y, lineminwitdh, lineminwitdh, itemRadius);
+
               setposition.y = setposition.y + linemaxwitdh;
             }
             setposition.y = 0.025 * logicalWidth;
@@ -84,17 +107,18 @@ function GithubCalendar(git_githubapiurl, git_color, git_user) {
           }
 
           if (document.body.clientWidth > 700) {
-            github_calendar_ctx.font = "600 10px Arial";
-            github_calendar_ctx.fillStyle = '#aaa';
-            github_calendar_ctx.fillText("日", 0, 1.9 * linemaxwitdh);
-            github_calendar_ctx.fillText("二", 0, 3.9 * linemaxwitdh);
-            github_calendar_ctx.fillText("四", 0, 5.9 * linemaxwitdh);
-            github_calendar_ctx.fillText("六", 0, 7.9 * linemaxwitdh);
+            github_calendar_ctx.font = "500 10px system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+            github_calendar_ctx.fillStyle = '#000';
+            github_calendar_ctx.textAlign = 'left';
 
-            var monthindexlist = logicalWidth / 24;
-            for (var index in git_monthchange) {
-              github_calendar_ctx.fillText(git_monthchange[index], monthindexlist, 0.7 * linemaxwitdh);
-              monthindexlist = monthindexlist + logicalWidth / 12;
+            var labelX = 0.005 * logicalWidth;
+            github_calendar_ctx.fillText("Sun", labelX, 1.9 * linemaxwitdh);
+            github_calendar_ctx.fillText("Tue", labelX, 3.9 * linemaxwitdh);
+            github_calendar_ctx.fillText("Thu", labelX, 5.9 * linemaxwitdh);
+            github_calendar_ctx.fillText("Sat", labelX, 7.9 * linemaxwitdh);
+
+            for (var i = 0; i < monthPositions.length; i++) {
+              github_calendar_ctx.fillText(monthPositions[i].label, monthPositions[i].x, 0.7 * linemaxwitdh);
             }
           }
 
@@ -111,7 +135,6 @@ function GithubCalendar(git_githubapiurl, git_color, git_user) {
             }
           };
 
-          // 鼠标命中：用物理像素与 CSS 像素比例换算，再除以 ratio 回到逻辑坐标
           var getMousePos = (canvas, event, boxSize) => {
             var rect = canvas.getBoundingClientRect();
             var scaleX = canvas.width / rect.width;
@@ -202,33 +225,59 @@ function GithubCalendar(git_githubapiurl, git_color, git_user) {
       };
 
       var git_thiscolor = (color, x) => {
-        if (x === 0) { var i = parseInt(x / 2); return color[0]; } else if (x < 2) { return color[1]; } else if (x < 20) { var i = parseInt(x / 2); return color[i]; } else { return color[9]; }
+        if (x === 0) return color[0];
+        else if (x <= 2) return color[1];
+        else if (x <= 5) return color[2];
+        else if (x < 9) return color[3];
+        else return color[4];
       };
+
+      var formatDateOrdinal = (dateStr) => {
+        var d = new Date(dateStr);
+        var day = d.getDate();
+        var month = d.toLocaleString('en-US', { month: 'long' });
+        var suffix = 'th';
+        if (day % 10 === 1 && day !== 11) suffix = 'st';
+        else if (day % 10 === 2 && day !== 12) suffix = 'nd';
+        else if (day % 10 === 3 && day !== 13) suffix = 'rd';
+        return month + ' ' + day + suffix;
+      };
+
       var tooltip_html = (x, y, span1, span2) => {
+        var text = (span2 === 0 ? 'No contributions on ' + formatDateOrdinal(span1) + '.' : span2 + ' contributions on ' + formatDateOrdinal(span1) + '.');
         var html = '';
-        html += '<div class="gitmessage" style="top:' + y + 'px;left:' + x + 'px;position: fixed;z-index:9999"><div class="angle-wrapper" style="display:block;"><span>' + span1 + '&nbsp;</span><span>' + span2 + ' 次上传</span></div></div>';
+        html += '<div class="gitmessage" style="top:' + y + 'px;left:' + x + 'px;position: fixed;z-index:9999"><div class="angle-wrapper" style="display:block;"><span>' + text + '</span></div></div>';
         return html;
       };
       var github_canvas_box = () => {
         var html = '<div id="gitcalendarcanvasbox"> <canvas id="gitcanvas" style="animation: none;"></canvas></div>';
         return html;
       };
+
       var github_info_box = (user, color) => {
         var html = '';
-        html += '<div id="git_tooltip_container"></div><div class="contrib-footer clearfix mt-1 mx-3 px-3 pb-1"><div class="float-left text-gray">数据来源 <a href="https://github.com/' + user + '" target="blank">@' + user + '</a></div><div class="contrib-legend text-gray">Less <ul class="legend"><li style="background-color:' + color[0] + '"></li><li style="background-color:' + color[2] + '"></li><li style="background-color:' + color[4] + '"></li><li style="background-color:' + color[6] + '"></li><li style="background-color:' + color[8] + '"></li></ul>More </div></div>';
+        html += '<div id="git_tooltip_container"></div><div class="contrib-footer clearfix mt-1 mx-3 px-3 pb-1"><div class="float-left text-gray">Datasource <a href="https://github.com/' + user + '" target="blank">@' + user + '</a></div><div class="contrib-legend text-gray">Less <ul class="legend">';
+        html += '<li style="background-color:' + color[0] + '"></li>';
+        html += '<li style="background-color:' + color[1] + '"></li>';
+        html += '<li style="background-color:' + color[2] + '"></li>';
+        html += '<li style="background-color:' + color[3] + '"></li>';
+        html += '<li style="background-color:' + color[4] + '"></li>';
+        html += '</ul>More </div></div>';
         return html;
       };
+
       var github_main_box = (monthchange, git_data, user, color, total, thisweekdatacore, weekdatacore, oneyearbeforeday, thisday, aweekago, amonthago) => {
         var html = '';
         var canvasbox = github_canvas_box();
         var infobox = github_info_box(user, color);
         var style = github_main_style();
         html += '<div class="position-relative"><div class="border py-2 graph-before-activity-overview"><div class="js-gitcalendar-graph mx-md-2 mx-3 d-flex flex-column flex-items-end flex-xl-items-center overflow-hidden pt-1 is-graph-loading graph-canvas gitcalendar-graph height-full text-center">' + canvasbox + '</div>' + infobox + '</div></div>';
-        html += '<div style="display:flex;width:100%"><div class="contrib-column contrib-column-first table-column"><span class="text-muted">过去一年提交</span><span class="contrib-number">' + total + '</span><span class="text-muted">' + oneyearbeforeday + '&nbsp;-&nbsp;' + thisday + '</span></div><div class="contrib-column table-column"><span class="text-muted">最近一月提交</span><span class="contrib-number">' + thisweekdatacore + '</span><span class="text-muted">' + amonthago + '&nbsp;-&nbsp;' + thisday + '</span></div><div class="contrib-column table-column"><span class="text-muted">最近一周提交</span><span class="contrib-number">' + weekdatacore + '</span><span class="text-muted">' + aweekago + '&nbsp;-&nbsp;' + thisday + '</span></div></div>' + style;
+        html += '<div style="display:flex;width:100%"><div class="contrib-column contrib-column-first table-column"><span class="text-muted">Committed in the past year</span><span class="contrib-number">' + total + '</span><span class="text-muted">' + oneyearbeforeday + '&nbsp;-&nbsp;' + thisday + '</span></div><div class="contrib-column table-column"><span class="text-muted">Committed in the last month</span><span class="contrib-number">' + thisweekdatacore + '</span><span class="text-muted">' + amonthago + '&nbsp;-&nbsp;' + thisday + '</span></div><div class="contrib-column table-column"><span class="text-muted">Committed in the last week</span><span class="contrib-number">' + weekdatacore + '</span><span class="text-muted">' + aweekago + '&nbsp;-&nbsp;' + thisday + '</span></div></div>' + style;
         return html;
       };
+
       var github_main_style = () => {
-        style = '<style>#github_container{text-align:center;margin:0 auto;width:100%;display:flex;display:-webkit-flex;justify-content:center;align-items:center;flex-wrap:wrap;}.gitcalendar-graph text.wday,.gitcalendar-graph text.month{font-size:10px;fill:#aaa;}.contrib-legend{text-align:right;padding:0 14px 10px 0;display:inline-block;float:right;}.contrib-legend .legend{display:inline-block;list-style:none;margin:0 5px;position:relative;bottom:-1px;padding:0;}.contrib-legend .legend li{display:inline-block;width:10px;height:10px;}.text-small{font-size:12px;color:#767676;}.gitcalendar-graph{padding:15px 0 0;text-align:center;}.contrib-column{text-align:center;border-left:1px solid #ddd;border-top:1px solid #ddd;font-size:11px;}.contrib-column-first{border-left:0;}.table-column{padding:10px;display:table-cell;flex:1;vertical-align:top;}.contrib-number{font-weight:300;line-height:1.3em;font-size:24px;display:block;}.gitcalendar img.spinner{width:70px;margin-top:50px;min-height:70px;}.monospace{text-align:center;color:#000;font-family:monospace;}.monospace a{color:#1D75AB;text-decoration:none;}.contrib-footer{font-size:11px;padding:0 10px 12px;text-align:left;width:100%;box-sizing:border-box;height:26px;}.left.text-muted{float:left;margin-left:9px;color:#767676;}.left.text-muted a{color:#4078c0;text-decoration:none;}.left.text-muted a:hover,.monospace a:hover{text-decoration:underline;}h2.f4.text-normal.mb-3{display:none;}.float-left.text-gray{float:left;}#user-activity-overview{display:none;}.day-tooltip{white-space:nowrap;position:absolute;z-index:99999;padding:10px;font-size:12px;color:#959da5;text-align:center;background:rgba(0,0,0,.85);border-radius:3px;display:none;pointer-events:none;}.day-tooltip strong{color:#dfe2e5;}.day-tooltip.is-visible{display:block;}.day-tooltip:after{position:absolute;bottom:-10px;left:50%;width:5px;height:5px;box-sizing:border-box;margin:0 0 0 -5px;content:" ";border:5px solid transparent;border-top-color:rgba(0,0,0,.85)}.position-relative{width:100%;}@media screen and (max-width:650px){.contrib-column{display:none}}.angle-wrapper{z-index:9999;display:inline;width:200px;height:40px;position:relative;padding:5px 0;background:rgba(0,0,0,0.8);border-radius:8px;text-align:center;color:white;}.angle-box{position:fixed;padding:10px}.angle-wrapper span{padding-bottom:1em;}.angle-wrapper:before{content:"";width:0;height:0;border:10px solid transparent;border-top-color:rgba(0,0,0,0.8);position:absolute;left:47.5%;top:100%;}</style>';
+        style = '<style>#github_container{text-align:center;margin:0 auto;width:100%;display:flex;display:-webkit-flex;justify-content:center;align-items:center;flex-wrap:wrap;}.gitcalendar-graph text.wday,.gitcalendar-graph text.month{font-size:10px;fill:#aaa;}.contrib-legend{text-align:right;padding:0 14px 10px 0;display:inline-block;float:right;}.contrib-legend .legend{display:inline-block;list-style:none;margin:0 5px;position:relative;bottom:-1px;padding:0;}.contrib-legend .legend li{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 2px;}.text-small{font-size:12px;color:#767676;}.gitcalendar-graph{padding:15px 0 0;text-align:center;}.contrib-column{text-align:center;border-left:1px solid #ddd;border-top:1px solid #ddd;font-size:11px;}.contrib-column-first{border-left:0;}.table-column{padding:10px;display:table-cell;flex:1;vertical-align:top;}.contrib-number{font-weight:300;line-height:1.3em;font-size:24px;display:block;}.gitcalendar img.spinner{width:70px;margin-top:50px;min-height:70px;}.monospace{text-align:center;color:#000;font-family:monospace;}.monospace a{color:#1D75AB;text-decoration:none;}.contrib-footer{font-size:11px;padding:0 10px 12px;text-align:left;width:100%;box-sizing:border-box;height:26px;}.left.text-muted{float:left;margin-left:9px;color:#767676;}.left.text-muted a{color:#4078c0;text-decoration:none;}.left.text-muted a:hover,.monospace a:hover{text-decoration:underline;}h2.f4.text-normal.mb-3{display:none;}.float-left.text-gray{float:left;}#user-activity-overview{display:none;}.day-tooltip{white-space:nowrap;position:absolute;z-index:99999;padding:10px;font-size:12px;color:#959da5;text-align:center;background:rgba(0,0,0,.85);border-radius:3px;display:none;pointer-events:none;}.day-tooltip strong{color:#dfe2e5;}.day-tooltip.is-visible{display:block;}.day-tooltip:after{position:absolute;bottom:-10px;left:50%;width:5px;height:5px;box-sizing:border-box;margin:0 0 0 -5px;content:" ";border:5px solid transparent;border-top-color:rgba(0,0,0,.85)}.position-relative{width:100%;}@media screen and (max-width:650px){.contrib-column{display:none}}.angle-wrapper{z-index:9999;display:inline-block;max-width:none;padding:6px 10px;background:rgba(0,0,0,0.8);border-radius:8px;text-align:center;color:white;white-space:nowrap;word-break:normal;}.angle-box{position:fixed;padding:10px}.angle-wrapper span{display:inline-block;}.angle-wrapper:before{display:none;}</style>';
         return style;
       };
     };
