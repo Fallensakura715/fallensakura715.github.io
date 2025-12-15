@@ -1,1 +1,0 @@
-# 通过REVOKE DNS实现 iOS 签名自由
