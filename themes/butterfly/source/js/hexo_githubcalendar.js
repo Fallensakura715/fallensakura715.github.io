@@ -164,26 +164,38 @@ function GithubCalendar(git_githubapiurl, git_color, git_user) {
       };
 
       var addlastmonth = () => {
+        var len = git_data.length;
         if (git_thisdayindex === 0) {
-          thisweekcore(52); thisweekcore(51); thisweekcore(50); thisweekcore(49); thisweekcore(48);
-          git_thisweekdatacore += git_firstdate[6].count;
-          git_amonthago = git_firstdate[6].date;
+          for (var i = 1; i <= 5; i++) {
+            if (len - i >= 0) thisweekcore(len - i);
+          }
+          if (git_firstdate && git_firstdate[6]) {
+            git_amonthago = git_firstdate[6].date;
+          }
         } else {
-          thisweekcore(52); thisweekcore(51); thisweekcore(50); thisweekcore(49); thisweek2core();
-          git_amonthago = git_first2date[git_thisdayindex - 1].date;
+          for (var i = 1; i <= 4; i++) {
+            if (len - i >= 0) thisweekcore(len - i);
+          }
+          thisweek2core();
+          if (git_first2date && git_first2date[git_thisdayindex - 1]) {
+            git_amonthago = git_first2date[git_thisdayindex - 1].date;
+          }
         }
       };
-      var thisweek2core = () => { for (var i = git_thisdayindex - 1; i < git_first2date.length; i++) { git_thisweekdatacore += git_first2date[i].count; } };
-      var thisweekcore = (index) => { for (var item of git_data[index]) { git_thisweekdatacore += item.count; } };
+      var thisweek2core = () => { if (git_first2date) { for (var i = git_thisdayindex - 1; i < git_first2date.length; i++) { git_thisweekdatacore += git_first2date[i].count; } } };
+      var thisweekcore = (index) => { if (git_data[index]) { for (var item of git_data[index]) { git_thisweekdatacore += item.count; } } };
       var addlastweek = () => { for (var item of git_lastweek) { git_weekdatacore += item.count; } };
-      var addbeforeweek = () => { for (var i = git_thisdayindex; i < git_beforeweek.length; i++) { git_weekdatacore += git_beforeweek[i].count; } };
+      var addbeforeweek = () => { if (git_beforeweek) { for (var i = git_thisdayindex; i < git_beforeweek.length; i++) { git_weekdatacore += git_beforeweek[i].count; } } };
       var addweek = (data) => {
+        var len = data.contributions.length;
         if (git_thisdayindex === 6) {
-          git_aweekago = git_lastweek[0].date;
+          if (git_lastweek[0]) git_aweekago = git_lastweek[0].date;
           addlastweek();
         } else {
-          lastweek = data.contributions[51];
-          git_aweekago = lastweek[git_thisdayindex + 1].date;
+          if (len >= 2) {
+            lastweek = data.contributions[len - 2];
+            if (lastweek[git_thisdayindex + 1]) git_aweekago = lastweek[git_thisdayindex + 1].date;
+          }
           addlastweek();
           addbeforeweek();
         }
@@ -194,12 +206,13 @@ function GithubCalendar(git_githubapiurl, git_color, git_user) {
           document.getElementById('github_loading').remove();
         }
         git_data = data.contributions;
+        var len = git_data.length;
         git_total = data.total;
-        git_first2date = git_data[48];
-        git_firstdate = git_data[47];
-        git_firstweek = data.contributions[0];
-        git_lastweek = data.contributions[52];
-        git_beforeweek = data.contributions[51];
+        git_first2date = len >= 5 ? git_data[len - 5] : null;
+        git_firstdate = len >= 6 ? git_data[len - 6] : null;
+        git_firstweek = git_data[0];
+        git_lastweek = git_data[len - 1];
+        git_beforeweek = len >= 2 ? git_data[len - 2] : null;
         git_thisdayindex = git_lastweek.length - 1;
         git_thisday = git_lastweek[git_thisdayindex].date;
         git_oneyearbeforeday = git_firstweek[0].date;
