@@ -160,7 +160,7 @@ githubcalendar:
   githubcalendar_html: '<div class="recent-post-item" style="width:100%;height:auto;padding:10px;"><div id="github_loading" style="width:10%;height:100%;margin:0 auto;display: block"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50" xml:space="preserve"><path fill="#d0d0d0" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z" transform="rotate(275.098 25 25)"><animateTransform attributeType="xml" attributeName="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.6s" repeatCount="indefinite"></animateTransform></path></svg></div><div id="github_container"></div></div>'
   pc_minheight: 280px    # 电脑端最小高度，防止加载时抖动
   mobile_minheight: 0px  # 手机端最小高度
-  color: "['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39']" # 经典的 GitHub 绿色系
+  color: "['#eff2f5', '#aceebb', '#4ac26b', '#2da44e', '#116329']" # 经典的 GitHub 绿色系
   api: https://github-contrib.falnsakura.top/ # 公共 API
   # calendar_js: https://cdn.jsdelivr.net/gh/barry-flynn/hexo-github-calendar/hexo_githubcalendar.js # 官方 JS CDN
   # 建议将上面的 calendar_js 注释掉，使用下面的本地路径（见第三步）
