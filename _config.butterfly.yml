@@ -203,7 +203,7 @@ toc:
   number: true
   expand: false
   # Only for post
-  style_simple: false
+  style_simple: true
   scroll_percent: true
 
 post_copyright:
@@ -288,7 +288,7 @@ aside:
   display:
     archive: true
     tag: true
-    category: true
+    category: false
   card_author:
     enable: true
     description:
