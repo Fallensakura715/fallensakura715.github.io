@@ -5,8 +5,9 @@ tags:
   - cloudflare
   - 图床
   - S3
-categorys:
+categories:
   - 技术
+cover: https://imgu.falnsakura.top/PicGo/2026/01/f5d9cc160407bb69415e8c9b45ae75dd.png
 ---
 在写博客或者维护网站时，图片的托管一直是个让人头疼的问题。放在本地会增加 Git 仓库体积，使用公共图床又担心随时“跑路”。今天介绍如何利用 Cloudflare R2 搭建一个高速、稳定且几乎免费的个人图床。
 
