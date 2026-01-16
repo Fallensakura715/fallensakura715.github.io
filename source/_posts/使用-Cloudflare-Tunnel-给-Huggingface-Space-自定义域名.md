@@ -132,7 +132,7 @@ jobs:
 
 去 [Dockerhub](https://hub.docker.com/) 的 `Account Settings > Settings > Personal Access Tokens` 拿到你账号的token。
 
->你想推到 **GCHR** 也可以的，记得把你的 **GCHR** 镜像设为公开
+>你想推到 **GHCR** 也可以的，记得把你的 **GHCR** 镜像设为公开
 
 ![image.png](https://imgu.falnsakura.top/PicGo/2026/01/14009519563a037c76401330a30c65a0.png)
 
@@ -151,7 +151,7 @@ token只会展示一次，复制形如 `dcr_xxx` 的 token 备用。
 - `DOCKERHUB_TOKEN`，填入你上一步获得的 token
 - `DOCKERHUB_USERNAME`，填入你`dockerhub`的用户名
 
->如果是 **非public** 的 GCHR 镜像仓库，你需要填的是 github user token，workflows配置文件也需要修改推送和登录部分
+>如果是 **非public** 的 GHCR 镜像仓库，你需要填的是 github user token，workflows配置文件也需要修改推送和登录部分
 
 ![image.png](https://imgu.falnsakura.top/PicGo/2026/01/7e99064cb6260a1446b7c95e8a876977.png)
 
@@ -168,7 +168,7 @@ FROM docker.io/你的用户名/镜像名:标签
 
 如果是 GCHR 仓库：
 ```Dockerfile
-FROM gchr.io/你的用户名/镜像名:标签
+FROM ghcr.io/你的用户名/镜像名:标签
 ```
 
 在你的 hf space 环境变量添加一个 **secret** 变量，填入你的 cloudflared token。
