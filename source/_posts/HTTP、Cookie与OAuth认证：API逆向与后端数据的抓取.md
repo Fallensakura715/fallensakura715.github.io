@@ -100,6 +100,35 @@ cover: https://imgu.falnsakura.top/PicGo/2026/01/57a508b2b0fe9e71a9c817bddd91eed
 
 它涉及第三方授权。如果你要爬取的数据在通过 OAuth 保护的接口里，流程会比较复杂，你需要模拟整个重定向流程来获取最终的 `Access Token`。
 
+```mermaid
+flowchart TD
+    %% 节点定义
+    Step1["1. 生成授权 URL<br>https://accounts.google.com/o/..."]
+    Step2["2. 用户在浏览器中登录 Google"]
+    Step3["3. 回调到本地服务器<br>http://localhost:51121/oauth-callback<br>+ 授权码 (code)"]
+    Step4["4. 换取 Token<br>POST https://oauth2.googleapis.com/token<br>→ access_token, refresh_token"]
+    Step5["5. 获取用户信息<br>GET /oauth2/v1/userinfo<br>→ email"]
+    Step6["6. 🎯 发现 Project ID<br>POST /v1internal:loadCodeAssist<br>→ cloudaicompanionProject"]
+    Step7["7. 注册用户 (如需要)<br>POST /v1internal:onboardUser<br>→ 轮询直到完成"]
+    Step8["8. 调用 Antigravity API<br>POST /v1internal:streamGenerateContent<br>Headers: Authorization Bearer token<br>Body: ( project, model, request... )`"]
+
+    %% 流程连接
+    Step1 --> Step2
+    Step2 --> Step3
+    Step3 --> Step4
+    Step4 --> Step5
+    Step5 --> Step6
+    
+    %% 条件分支逻辑
+    Step6 -- "如果没有 Project ID" --> Step7
+    Step7 --> Step8
+    Step6 -- "Project ID 已存在" --> Step8
+
+    %% 样式美化
+    style Step6 fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    style Step8 fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+```
+
 OAuth 2.0 是一个**授权框架**，允许第三方应用在**无需获取用户密码**的情况下访问用户资源。
 
 **传统方式的问题：**
@@ -114,6 +143,22 @@ OAuth 2.0 是一个**授权框架**，允许第三方应用在**无需获取�
        ✅ 安全   ✅ 可撤销  ✅ 权限受限
 ```
 
+```mermaid
+sequenceDiagram
+    participant User as 用户<br/>(Owner)
+    participant App as 客户端应用<br/>(Your App)
+    participant Auth as 授权服务器<br/>(Google)
+    
+    User->>App: 1. 访问应用
+    App->>User: 2. 重定向到授权页面
+    User->>Auth: 3. 访问授权页面
+    Note over User,Auth: 4. 用户登录并同意授权
+    Auth->>User: 5. 返回授权码 (code)
+    User->>App: 6. 回调地址 + code
+    App->>Auth: 7. code 换 token
+    Auth->>App: 8. 返回 token
+    App->>Auth: 9. 使用 token 访问 API
+```
 ###### 核心术语
 |术语|说明|Antigravity 示例|
 |---|---|---|
