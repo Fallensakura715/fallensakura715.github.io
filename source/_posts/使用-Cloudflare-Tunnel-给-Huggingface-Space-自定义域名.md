@@ -47,11 +47,11 @@ Huggingface 其实也是个大善人，有免费的 2c **16g** 的 space 让你�
 1. 在 Tunnel 详情页面，切换到 **Public Hostname** 标签
 2. 点击 **Add a public hostname**
 3. 填写配置：
-	具体配置看你的容器，需要监听什么端口，什么协议，我以`open-webui`为例
+	具体配置看你的容器，需要监听什么端口，什么协议，以`open-webui`为例
 	- **Subdomain**: 输入子域名（如 `chat`）
 	- **Domain**: 选择你的域名
 	- **Type**: 选择 `HTTP`
-	- **URL**:  由于我和 openwebui 镜像打包在一起，填`localhost:7860`
+	- **URL**:  由于和 openwebui 镜像打包在一起，填`localhost:7860`
 4. 点击 **Save hostname**
 
 ![image.png](https://imgu.falnsakura.top/PicGo/2026/01/76956f3a442d2a38fef141ba59bff5e8.png)
@@ -62,6 +62,7 @@ Huggingface 其实也是个大善人，有免费的 2c **16g** 的 space 让你�
 
 你可以直接 **Fork** [我的仓库](https://github.com/Fallensakura715/actions-auto-build)。
 
+以下是自己操作的流程。
 新建一个仓库，仓库根目录创建Dockerfile。
 这里以 `open-webui` 为例，镜像、端口和依赖安装自己改一下。
 
@@ -210,8 +211,10 @@ FROM gchr.io/你的用户名/镜像名:标签
 
 关于优选加速访问，cf tunnel 可以通过 SaaS 优选哦。
 
+>[!CAUTION]
 >谨慎使用，千万不要在 Space 明文使用 cf tunnel，否则你的 space 会喜提秒封。
 
+>[!CAUTION]
 >也不要在 Huggingface Space 部署 AList，也会秒封。
 
 **相关链接**：
