@@ -19,6 +19,310 @@ Huggingface 其实也是个大善人，有免费的 2c **16g** 的 space 让你�
 >Cloudflare Workers 也可以反代抱抱脸空间，但是会占你访问额度，也有CPU时间限制。。。
 >如果你需要 Websocket 也有点麻烦。。。
 
+### 更新
+
+> [!WARNING]
+> 仅仅打包成镜像仍然有被封空间的危险！ 
+
+可以套一层 nginx ，在7890端口伪装静态页面
+main.conf
+```
+server {
+    listen 7860;
+    listen [::]:7860;
+    server_name _;
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+    }
+
+    location /health {
+        return 200 'OK';
+        add_header Content-Type text/plain;
+    }
+}
+```
+
+再启用 ssl 反代
+ssl.conf.template
+```
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+
+    server_name ARGO_DOMAIN_PLACEHOLDER;
+    ssl_certificate          /app/cert.pem;
+    ssl_certificate_key      /app/cert.key;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    underscores_in_headers on;
+
+    # WebSocket 支持
+    location /ws {
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header X-Real-IP $http_cf_connecting_ip;
+        proxy_read_timeout 86400;
+        proxy_send_timeout 86400;
+        proxy_buffering off;
+        proxy_pass http://127.0.0.1:8080;
+    }
+
+    # API 和主服务
+    location / {
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+        proxy_buffering off;
+        proxy_pass http://127.0.0.1:8080;
+    }
+}
+```
+
+加上这个启动脚本，把容器日志输出在hf的容器日志里
+```shell
+#!/bin/sh
+set -e
+
+# =========================
+# 环境变量（隐蔽名称）
+# =========================
+ARGO_DOMAIN=${DD_DM:-""}
+ARGO_AUTH=${DD_DD:-""}
+
+# =========================
+# 日志函数
+# =========================
+log_info() { echo "[INFO] $(date '+%Y-%m-%d %H:%M:%S') $1"; }
+log_ok() { echo "[OK] $(date '+%Y-%m-%d %H:%M:%S') $1"; }
+log_error() { echo "[ERROR] $(date '+%Y-%m-%d %H:%M:%S') $1"; }
+log_warn() { echo "[WARN] $(date '+%Y-%m-%d %H:%M:%S') $1"; }
+
+# =========================
+# 辅助函数
+# =========================
+wait_for_port() {
+    local port=$1
+    local timeout=$2
+    for i in $(seq 1 $timeout); do
+        if curl -s http://127.0.0.1:$port > /dev/null 2>&1; then
+            return 0
+        fi
+        sleep 1
+    done
+    return 1
+}
+
+start_webui() {
+    log_info "正在启动 Open WebUI..."
+    cd /app/backend
+    
+    # 核心修改：使用 tee 将日志同时输出到文件和控制台，确保 HF 能看到日志
+    # 使用 stdbuf -oL 减少缓冲，让日志实时显示
+    stdbuf -oL nohup ./start.sh > /tmp/webui.log 2>&1 &
+    
+}
+
+# 实时读取日志文件的后台进程（确保日志能显示在 HF 控制台）
+tail_logs() {
+    touch /tmp/webui.log
+    tail -f /tmp/webui.log &
+}
+
+echo "===== Application Startup at $(date '+%Y-%m-%d %H:%M:%S') ====="
+
+# =========================
+# 步骤 1: 启动 Nginx (健康检查)
+# =========================
+echo "=========================================="
+echo " 步骤 1: 启动 Nginx (端口 7860)"
+echo "=========================================="
+
+mkdir -p /var/www/html
+nginx
+
+sleep 2
+
+if curl -s http://127.0.0.1:7860/health > /dev/null 2>&1; then
+    log_ok "Nginx 端口 7860 已就绪"
+else
+    log_error "Nginx 端口 7860 检查失败"
+fi
+
+# =========================
+# 步骤 2: 启动 Open WebUI
+# =========================
+echo "=========================================="
+echo " 步骤 2: 启动 Open WebUI"
+echo "=========================================="
+
+# 检查目录是否存在
+if [ ! -d "/app/backend" ]; then
+    log_error "/app/backend 目录不存在"
+    exit 1
+fi
+
+cd /app/backend
+
+# 检查启动脚本是否存在
+if [ ! -f "./start.sh" ]; then
+    log_error "start.sh 不存在"
+    exit 1
+fi
+
+# 启动 Open WebUI
+
+tail_logs
+
+# 启动 WebUI
+PORT=8080 HOST=0.0.0.0 start_webui
+
+if wait_for_port 8080 60; then
+    log_ok "OWU 已启动"
+else
+    log_error "Open WebUI 启动超时或失败，最后 20 行日志："
+    tail -n 20 /tmp/webui.log
+    # 这里不退出 exit 1，而是进入循环尝试挽救
+fi
+
+# =========================
+# 步骤 3: 生成 SSL 证书
+# =========================
+if [ -n "$ARGO_DOMAIN" ]; then
+    echo "=========================================="
+    echo " 步骤 3: 生成 SSL 证书"
+    echo "=========================================="
+    
+    log_info "生成证书: $ARGO_DOMAIN"
+    
+    mkdir -p /app
+    
+    openssl genrsa -out /app/cert.key 2048 2>/dev/null
+    openssl req -new -subj "/CN=$ARGO_DOMAIN" -key /app/cert.key -out /app/cert.csr 2>/dev/null
+    openssl x509 -req -days 36500 -in /app/cert.csr -signkey /app/cert.key -out /app/cert.pem 2>/dev/null
+    
+    sed "s/ARGO_DOMAIN_PLACEHOLDER/$ARGO_DOMAIN/g" /etc/nginx/ssl.conf.template > /etc/nginx/conf.d/ssl.conf
+    
+    nginx -s reload
+    sleep 1
+    log_ok "证书生成完成，443 端口已启用"
+fi
+
+# =========================
+# 步骤 4: 启动隧道（进程名伪装）
+# =========================
+if [ -n "$ARGO_AUTH" ]; then
+    echo "=========================================="
+    echo " 步骤 4: 启动辅助服务"
+    echo "=========================================="
+    
+    # 使用重命名后的二进制
+    /usr/local/bin/dd-dd tunnel --no-autoupdate run --protocol http2 --token "$ARGO_AUTH" > /tmp/tunnel.log 2>&1 &
+    
+    sleep 5
+    
+    if pgrep -f "dd-dd" >/dev/null; then
+        log_ok "辅助服务启动成功"
+    else
+        log_error "辅助服务启动失败"
+        cat /tmp/tunnel.log
+    fi
+fi
+
+# =========================
+# 完成
+# =========================
+echo "=========================================="
+echo " 所有服务已启动"
+echo "=========================================="
+[ -n "$ARGO_DOMAIN" ] && log_ok "访问地址: https://$ARGO_DOMAIN"
+log_info "HTTP: http://localhost:7860"
+log_info "WebUI: http://localhost:8080"
+
+# =========================
+# 健康检查循环
+# =========================
+while true; do
+    
+    # 检查隧道
+    if [ -n "$ARGO_AUTH" ] && ! pgrep -f "dd-dd" >/dev/null; then
+        log_warn "隧道进程丢失，正在重启..."
+        /usr/local/bin/dd-dd tunnel --no-autoupdate run --protocol http2 --token "$ARGO_AUTH" > /tmp/tunnel.log 2>&1 &
+    fi
+    
+    # 检查 Nginx
+    if ! pgrep -x "nginx" >/dev/null; then
+        log_warn "Nginx 进程丢失，正在重启..."
+        nginx
+    fi
+
+    if ! curl -s http://127.0.0.1:8080/health > /dev/null 2>&1; then
+        sleep 5
+        if ! curl -s http://127.0.0.1:8080/health > /dev/null 2>&1; then
+             log_warn "OWU (端口 8080) 无响应，尝试重启..."
+             pkill -f "uvicorn" || true
+             pkill -f "start.sh" || true
+             
+             # 重启
+             PORT=8080 HOST=0.0.0.0 start_webui
+        fi
+    fi
+    
+    sleep 60
+done
+```
+
+打包好的镜像
+```dockerfile
+FROM ghcr.io/open-webui/open-webui:main
+
+USER root
+
+# 安装 Nginx 和其他工具
+RUN apt-get update && apt-get install -y \
+    nginx \
+    openssl \
+    curl \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# 复制 cloudflared（伪装名称）
+COPY --from=cloudflare/cloudflared:latest /usr/local/bin/cloudflared /usr/local/bin/dd-dd
+
+# Nginx 配置
+COPY main.conf /etc/nginx/conf.d/main.conf
+RUN rm -f /etc/nginx/conf.d/default.conf && \
+    rm -rf /etc/nginx/sites-enabled/* && \
+    rm -rf /etc/nginx/sites-available/*
+COPY ssl.conf.template /etc/nginx/ssl.conf.template
+
+# 复制自定义文件
+COPY entrypoint.sh /entrypoint.sh
+COPY index.html /usr/share/nginx/html/index.html
+
+# 设置权限
+RUN chmod +x /entrypoint.sh && \
+    sed -i 's/\r$//' /entrypoint.sh
+
+EXPOSE 8080
+
+ENV DD_DM="" \
+    DD_DD="" \
+    PORT=8080 \
+    HOST=0.0.0.0
+
+CMD ["/entrypoint.sh"]
+```
+
 ### 前置条件
 
 - 一个 Cloudflare 账号
