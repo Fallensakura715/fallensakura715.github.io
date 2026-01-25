@@ -53,7 +53,7 @@ public class ServiceB {
 
 1. **实例化：** 对应方法 `createBeanInstance`。 执行构造函数 `new Object()`。此时对象已经存在于堆内存，但属性都是 null。这个对象被称为**原始对象**。
 2. **属性填充：**  对应方法 `populateBean`。 执行 `@Autowired` 注入，将依赖注入进去。如果依赖的对象还没创建，就会暂停当前 Bean 的创建，转而去创建依赖的 Bean。
-3. 1. **初始化：** 对应方法 `initializeBean`。 执行 `BeanPostProcessor` 的后置处理（如 AOP 代理生成）、`InitializingBean` 接口回调等。
+3. **初始化：** 对应方法 `initializeBean`。 执行 `BeanPostProcessor` 的后置处理（如 AOP 代理生成）、`InitializingBean` 接口回调等。
 
 **Spring 解决循环依赖的核心思想是：**
 
