@@ -1,0 +1,101 @@
+/* ===================================================
+   Claude 风格顶部渐变背景
+   =================================================== */
+
+#page-header {
+  position: relative;
+  overflow: hidden;
+}
+
+/* 主渐变背景 */
+#page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+
+  /* ===== 方案1: 柔和奶油渐变（推荐）===== */
+  background:
+    /* 右下角橙色光晕 */
+    radial-gradient(ellipse 80% 60% at 90% 90%,
+      rgba(217, 119, 87, 0.25) 0%,
+      rgba(217, 119, 87, 0.1) 30%,
+      transparent 70%),
+    /* 左上角浅色光晕 */
+    radial-gradient(ellipse 70% 50% at 10% 10%,
+      rgba(255, 255, 255, 0.8) 0%,
+      transparent 60%),
+    /* 中间柔和过渡 */
+    radial-gradient(ellipse 100% 80% at 50% 50%,
+      #F5F0EB 0%,
+      #EDE5DC 100%),
+    /* 底层渐变 */
+    linear-gradient(135deg,
+      #FAF9F6 0%,
+      #F5EEE8 25%,
+      #EDE5DC 50%,
+      #E8DCD2 75%,
+      #E0D0C4 100%);
+}
+
+/* 确保内容在背景之上 */
+#page-header>*:not(::before) {
+  position: relative;
+  z-index: 1;
+}
+
+#page-header #site-info,
+#page-header .post-title,
+#page-header #site-title,
+#page-header #site-subtitle {
+  position: relative;
+  z-index: 1;
+}
+
+/* 标题文字样式 */
+#page-header #site-title,
+#page-header #site-subtitle,
+#page-header .post-title {
+  color: #3D3929 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 向下滚动箭头 */
+#page-header .scroll-down-effects {
+  color: #D97757 !important;
+  z-index: 1;
+}
+
+/* ===================================================
+   深色模式
+   =================================================== */
+
+[data-theme="dark"] #page-header::before {
+  background:
+    radial-gradient(ellipse 80% 60% at 90% 90%,
+      rgba(217, 119, 87, 0.2) 0%,
+      rgba(217, 119, 87, 0.08) 30%,
+      transparent 70%),
+    radial-gradient(ellipse 70% 50% at 10% 10%,
+      rgba(60, 58, 50, 0.5) 0%,
+      transparent 60%),
+    radial-gradient(ellipse 100% 80% at 50% 50%,
+      #242320 0%,
+      #1A1915 100%),
+    linear-gradient(135deg,
+      #1A1915 0%,
+      #1E1D18 25%,
+      #24221D 50%,
+      #2A2822 75%,
+      #302E27 100%);
+}
+
+[data-theme="dark"] #page-header #site-title,
+[data-theme="dark"] #page-header #site-subtitle,
+[data-theme="dark"] #page-header .post-title {
+  color: #E8E6DF !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}

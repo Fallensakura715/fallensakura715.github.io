@@ -1,0 +1,624 @@
+/* ============================================
+   Claude Style - 精简版 v3
+   1. 卡片描边
+   2. 代码块样式（无圆点、无$、修复标头）
+   3. Callout 引用块
+   ============================================ */
+
+/* ===================================================
+   Claude Style + 衬线字体
+   =================================================== */
+
+:root {
+  /* Claude 核心色彩 */
+  --claude-primary: #D97757;
+  --claude-primary-light: #E8A089;
+  --claude-bg-primary: #FAF9F6;
+  --claude-bg-secondary: #F5F4F0;
+  --claude-bg-card: #FFFFFF;
+  --claude-text-primary: #3D3929;
+  --claude-text-secondary: #6B6555;
+  --claude-border: #E5E3DB;
+
+  /* 字体 */
+  --font-serif: 'Source Serif 4', 'Noto Serif SC', Georgia,
+    '思源宋体', 'Songti SC', '宋体', serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+
+  /* ... 其他变量保持不变 ... */
+}
+
+html {
+  font-size: 14px !important;
+}
+
+/* 全局衬线字体 */
+body {
+  font-family: var(--font-serif) !important;
+  line-height: 1.75 !important;
+}
+
+#article-container {
+  font-family: var(--font-serif) !important;
+  font-size: 1.05rem !important;
+  line-height: 1.9 !important;
+  letter-spacing: 0.015em !important;
+}
+
+#article-container p,
+#article-container li,
+#article-container blockquote {
+  font-family: var(--font-serif) !important;
+}
+
+#article-container h1,
+#article-container h2,
+#article-container h3,
+#article-container h4,
+#article-container h5,
+#article-container h6 {
+  font-family: var(--font-serif) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+.post-title,
+.article-title,
+.recent-post-info .article-title,
+#page-header #site-title,
+#aside-content .author-info-name {
+  font-family: var(--font-serif) !important;
+}
+
+/* 代码保持等宽 */
+code,
+pre,
+figure.highlight,
+figure.highlight * {
+  font-family: var(--font-mono) !important;
+}
+
+#article-container code:not(pre code):not(.hljs) {
+  font-family: var(--font-mono) !important;
+}
+
+
+/* 页面整体背景 */
+html,
+body,
+#body-wrap,
+#web_bg {
+  background: #FAF9F6 !important;
+  background-color: #FAF9F6 !important;
+}
+
+/* Butterfly 的背景层 */
+#web_bg {
+  background: #FAF9F6 !important;
+  background-image: none !important;
+}
+
+/* 主内容区域 */
+main#content-inner,
+#content-inner {
+  background: transparent !important;
+}
+
+/* 深色模式 */
+[data-theme="dark"] html,
+[data-theme="dark"] body,
+[data-theme="dark"] #body-wrap,
+[data-theme="dark"] #web_bg {
+  background: #1A1915 !important;
+  background-color: #1A1915 !important;
+}
+
+
+:root {
+  /* Claude 核心色彩 */
+  --claude-primary: #D97757;
+  --claude-primary-light: #E8A089;
+  --claude-bg-primary: #FAF9F6;
+  --claude-bg-secondary: #F5F4F0;
+  --claude-text-primary: #3D3929;
+  --claude-text-secondary: #6B6555;
+  --claude-border: #E5E3DB;
+
+  /* 代码块专用 */
+  --code-bg: #1E1E1E;
+  --code-header-bg: #2D2D2D;
+  --code-text: #D4D4D4;
+  --code-comment: #6A9955;
+  --code-keyword: #569CD6;
+  --code-string: #CE9178;
+  --code-function: #DCDCAA;
+  --code-number: #B5CEA8;
+  --code-line-number: #858585;
+
+  /* Callout 颜色 */
+  --callout-note-bg: rgba(68, 138, 255, 0.1);
+  --callout-note-border: #448AFF;
+  --callout-tip-bg: rgba(0, 200, 83, 0.1);
+  --callout-tip-border: #00C853;
+  --callout-warning-bg: rgba(255, 145, 0, 0.1);
+  --callout-warning-border: #FF9100;
+  --callout-danger-bg: rgba(255, 82, 82, 0.1);
+  --callout-danger-border: #FF5252;
+  --callout-info-bg: rgba(0, 184, 212, 0.1);
+  --callout-info-border: #00B8D4;
+  --callout-important-bg: rgba(124, 77, 255, 0.1);
+  --callout-important-border: #7C4DFF;
+}
+
+[data-theme="dark"] {
+  --claude-bg-primary: #1A1915;
+  --claude-bg-secondary: #242320;
+  --claude-text-primary: #E8E6DF;
+  --claude-text-secondary: #B8B3A8;
+  --claude-border: #3D3A32;
+
+  --callout-note-bg: rgba(68, 138, 255, 0.15);
+  --callout-tip-bg: rgba(0, 200, 83, 0.15);
+  --callout-warning-bg: rgba(255, 145, 0, 0.15);
+  --callout-danger-bg: rgba(255, 82, 82, 0.15);
+  --callout-info-bg: rgba(0, 184, 212, 0.15);
+  --callout-important-bg: rgba(124, 77, 255, 0.15);
+}
+
+/* ===================================================
+   1. 卡片描边效果
+   =================================================== */
+
+#recent-posts>.recent-post-item,
+.recent-post-item {
+  border: 1px solid var(--claude-border) !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease !important;
+}
+
+#recent-posts>.recent-post-item:hover,
+.recent-post-item:hover {
+  border-color: var(--claude-primary-light) !important;
+  box-shadow: 0 8px 24px rgba(217, 119, 87, 0.15) !important;
+}
+
+#post {
+  border: 1px solid var(--claude-border) !important;
+  border-radius: 16px !important;
+}
+
+#aside-content .card-widget {
+  border: 1px solid var(--claude-border) !important;
+  border-radius: 12px !important;
+}
+
+#aside-content .card-widget:hover {
+  border-color: var(--claude-primary-light) !important;
+}
+
+/* ===================================================
+   2. 代码块样式
+   =================================================== */
+
+/* 行内代码 */
+#article-container code:not(pre code):not(.hljs) {
+  background: var(--claude-bg-secondary) !important;
+  color: var(--claude-primary) !important;
+  padding: 0.15em 0.4em !important;
+  border-radius: 4px !important;
+  font-size: 0.9em !important;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace !important;
+  font-weight: 500;
+  border: 1px solid var(--claude-border);
+}
+
+/* ===== 代码块容器 ===== */
+figure.highlight,
+div.highlight,
+pre.highlight {
+  background: var(--code-bg) !important;
+  border-radius: 8px !important;
+  border: 1px solid #333 !important;
+  overflow: hidden !important;
+  margin: 1.5em 0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  position: relative;
+}
+
+/* ===== 代码块头部（修复白色问题） ===== */
+figure.highlight figcaption,
+figure.highlight .highlight-tools,
+.code-header,
+.highlight figcaption {
+  background: #2D2D2D !important;
+  background-color: #2D2D2D !important;
+  border-bottom: 1px solid #404040 !important;
+  padding: 8px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin: 0 !important;
+}
+
+/* 语言标签文字 */
+figure.highlight figcaption span,
+figure.highlight figcaption .caption,
+figure.highlight .highlight-tools .code-lang,
+.code-header span {
+  color: #888888 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  background: transparent !important;
+}
+
+/* 复制按钮 */
+figure.highlight .copy-button,
+figure.highlight .highlight-tools .copy-btn,
+.code-copy-btn {
+  background: transparent !important;
+  border: 1px solid #555 !important;
+  color: #888 !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
+  font-size: 11px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+figure.highlight .copy-button:hover,
+figure.highlight .highlight-tools .copy-btn:hover,
+.code-copy-btn:hover {
+  background: #444 !important;
+  border-color: #666 !important;
+  color: #FFF !important;
+}
+
+/* ===== 代码表格布局 ===== */
+figure.highlight table {
+  margin: 0 !important;
+  width: 100% !important;
+  border: none !important;
+  border-collapse: collapse !important;
+  background: transparent !important;
+}
+
+figure.highlight table td {
+  border: none !important;
+  padding: 0 !important;
+  vertical-align: top !important;
+  background: transparent !important;
+}
+
+figure.highlight table tr {
+  background: transparent !important;
+}
+
+/* ===== 行号区域 ===== */
+figure.highlight .gutter,
+figure.highlight td.gutter {
+  background: #252526 !important;
+  border-right: 1px solid #333 !important;
+  width: 40px !important;
+  min-width: 40px !important;
+  max-width: 50px !important;
+}
+
+figure.highlight .gutter pre {
+  color: #858585 !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  padding: 12px 8px !important;
+  text-align: right !important;
+  margin: 0 !important;
+  background: transparent !important;
+}
+
+/* ===== 代码内容区域 ===== */
+figure.highlight .code,
+figure.highlight td.code {
+  background: #1E1E1E !important;
+  flex: 1 !important;
+}
+
+figure.highlight .code pre {
+  padding: 12px 16px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  overflow-x: auto !important;
+}
+
+figure.highlight pre,
+figure.highlight code {
+  color: #D4D4D4 !important;
+  font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  background: transparent !important;
+}
+
+/* 无头部的代码块 */
+figure.highlight:not(:has(figcaption)) .code pre,
+figure.highlight.plain .code pre {
+  padding: 12px 16px !important;
+}
+
+/* ===== 语法高亮颜色 ===== */
+.hljs-comment,
+.highlight .comment {
+  color: #6A9955 !important;
+  font-style: italic !important;
+}
+
+.hljs-keyword,
+.hljs-built_in,
+.highlight .keyword {
+  color: #569CD6 !important;
+}
+
+.hljs-string,
+.hljs-attr,
+.highlight .string {
+  color: #CE9178 !important;
+}
+
+.hljs-function,
+.hljs-title,
+.highlight .function,
+.highlight .title {
+  color: #DCDCAA !important;
+}
+
+.hljs-number,
+.highlight .number {
+  color: #B5CEA8 !important;
+}
+
+.hljs-variable,
+.highlight .variable {
+  color: #9CDCFE !important;
+}
+
+.hljs-type,
+.highlight .type {
+  color: #4EC9B0 !important;
+}
+
+.hljs-property,
+.highlight .property {
+  color: #9CDCFE !important;
+}
+
+/* ===== Shell / Bash 样式 ===== */
+figure.highlight.bash,
+figure.highlight.shell,
+figure.highlight.sh,
+figure.highlight.zsh,
+figure.highlight.console,
+figure.highlight.terminal {
+  background: #0D1117 !important;
+}
+
+figure.highlight.bash figcaption,
+figure.highlight.shell figcaption,
+figure.highlight.sh figcaption,
+figure.highlight.zsh figcaption,
+figure.highlight.console figcaption,
+figure.highlight.terminal figcaption {
+  background: #161B22 !important;
+  border-bottom-color: #30363D !important;
+}
+
+figure.highlight.bash .gutter,
+figure.highlight.shell .gutter,
+figure.highlight.sh .gutter,
+figure.highlight.zsh .gutter,
+figure.highlight.console .gutter,
+figure.highlight.terminal .gutter {
+  background: #0D1117 !important;
+  border-right-color: #30363D !important;
+}
+
+figure.highlight.bash .code,
+figure.highlight.shell .code,
+figure.highlight.sh .code,
+figure.highlight.zsh .code,
+figure.highlight.console .code,
+figure.highlight.terminal .code {
+  background: #0D1117 !important;
+}
+
+figure.highlight.bash .line,
+figure.highlight.shell .line,
+figure.highlight.sh .line {
+  color: #C9D1D9 !important;
+}
+
+/* Shell 高亮颜色 */
+.highlight.bash .function,
+.highlight.shell .function,
+.highlight.sh .function {
+  color: #DCDCAA !important;
+}
+
+.highlight.bash .string,
+.highlight.shell .string,
+.highlight.sh .string {
+  color: #A5D6FF !important;
+}
+
+.highlight.bash .variable,
+.highlight.shell .variable,
+.highlight.sh .variable {
+  color: #FFA657 !important;
+}
+
+.highlight.bash .built_in,
+.highlight.shell .built_in,
+.highlight.sh .built_in {
+  color: #79C0FF !important;
+}
+
+/* ===================================================
+   3. Callout 引用块样式
+   =================================================== */
+
+/* 默认引用块 */
+#article-container blockquote {
+  background: var(--claude-bg-secondary) !important;
+  border: none !important;
+  border-left: 4px solid var(--claude-primary) !important;
+  border-radius: 0 8px 8px 0 !important;
+  padding: 1rem 1.25rem !important;
+  margin: 1.5em 0 !important;
+  color: var(--claude-text-primary) !important;
+}
+
+#article-container blockquote p {
+  margin: 0.5em 0 !important;
+}
+
+#article-container blockquote p:first-child {
+  margin-top: 0 !important;
+}
+
+#article-container blockquote p:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* ===== Callout 类型样式 ===== */
+
+/* NOTE */
+#article-container blockquote[data-callout="note"] {
+  background: var(--callout-note-bg) !important;
+  border-left-color: var(--callout-note-border) !important;
+}
+
+#article-container blockquote[data-callout="note"] .callout-title {
+  color: var(--callout-note-border) !important;
+}
+
+/* TIP */
+#article-container blockquote[data-callout="tip"] {
+  background: var(--callout-tip-bg) !important;
+  border-left-color: var(--callout-tip-border) !important;
+}
+
+#article-container blockquote[data-callout="tip"] .callout-title {
+  color: var(--callout-tip-border) !important;
+}
+
+/* WARNING / CAUTION */
+#article-container blockquote[data-callout="warning"],
+#article-container blockquote[data-callout="caution"] {
+  background: var(--callout-warning-bg) !important;
+  border-left-color: var(--callout-warning-border) !important;
+}
+
+#article-container blockquote[data-callout="warning"] .callout-title,
+#article-container blockquote[data-callout="caution"] .callout-title {
+  color: var(--callout-warning-border) !important;
+}
+
+/* DANGER */
+#article-container blockquote[data-callout="danger"] {
+  background: var(--callout-danger-bg) !important;
+  border-left-color: var(--callout-danger-border) !important;
+}
+
+#article-container blockquote[data-callout="danger"] .callout-title {
+  color: var(--callout-danger-border) !important;
+}
+
+/* INFO */
+#article-container blockquote[data-callout="info"] {
+  background: var(--callout-info-bg) !important;
+  border-left-color: var(--callout-info-border) !important;
+}
+
+#article-container blockquote[data-callout="info"] .callout-title {
+  color: var(--callout-info-border) !important;
+}
+
+/* IMPORTANT */
+#article-container blockquote[data-callout="important"] {
+  background: var(--callout-important-bg) !important;
+  border-left-color: var(--callout-important-border) !important;
+}
+
+#article-container blockquote[data-callout="important"] .callout-title {
+  color: var(--callout-important-border) !important;
+}
+
+/* Callout 标题样式 */
+#article-container blockquote .callout-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  margin-bottom: 8px !important;
+}
+
+#article-container blockquote .callout-title-icon {
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+
+/* Callout 内容 */
+#article-container blockquote .callout-content {
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+#article-container blockquote .callout-content p {
+  margin: 0.4em 0 !important;
+}
+
+#article-container blockquote .callout-content p:first-child {
+  margin-top: 0 !important;
+}
+
+#article-container blockquote .callout-content p:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* =========================================
+   7. 文章正文样式 (Claude 沉浸式阅读)
+   ========================================= */
+
+/* 针对文章内容的容器 */
+#article-container {
+  /* 
+       字体栈说明：
+       1. Georgia: 屏幕显示效果最好的英文字体
+       2. Source Serif Pro: Adobe 开源优质衬线体
+       3. Noto Serif SC / Songti SC: 中文衬线体 (宋体)
+    */
+  font-family: "Georgia", "Source Serif Pro", "Noto Serif SC", "Songti SC", serif !important;
+
+  /* 颜色：深褐灰，长时间阅读不累眼 */
+  color: #3A3530 !important;
+
+  /* 大小：衬线体通常比无衬线体看起来小，所以稍微放大一点 */
+  font-size: 17px !important;
+
+  /* 行高：增加行间距，营造呼吸感 */
+  line-height: 1.8 !important;
+}
+
+/* 针对标题 (H1-H6) */
+#article-container h1,
+#article-container h2,
+#article-container h3,
+#article-container h4,
+#article-container h5,
+#article-container h6 {
+  font-family: "Georgia", "Source Serif Pro", "Noto Serif SC", serif !important;
+  color: #1a1a1a !important;
+  /* 标题颜色比正文稍深 */
+  font-weight: 600 !important;
+  letter-spacing: 0.02em;
+  /* 稍微加一点字间距 */
+}
