@@ -53,7 +53,7 @@ highlight:
   tab_replace: ''
   wrap: true
   hljs: false
-  exclude_languages: ['mermaid']
+  exclude_languages: ['mermaid','nginx']
 prismjs:
   preprocess: true
   line_number: true
