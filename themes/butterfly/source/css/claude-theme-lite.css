@@ -622,3 +622,255 @@ figure.highlight.sh .line {
   letter-spacing: 0.02em;
   /* 稍微加一点字间距 */
 }
+
+/* ===================================================
+   FIX 1: 行号区域 - 收窄 + 对齐
+   =================================================== */
+figure.highlight .gutter,
+figure.highlight td.gutter {
+  width: 30px !important;
+  min-width: 30px !important;
+  max-width: 38px !important;
+}
+
+/* 关键：gutter 和 code 的 font-size / line-height / padding-top 必须完全一致 */
+figure.highlight .gutter pre,
+figure.highlight .code pre {
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  margin: 0 !important;
+}
+
+figure.highlight .gutter pre {
+  padding-left: 4px !important;
+  padding-right: 6px !important;
+  text-align: right !important;
+  color: #858585 !important;
+  background: #252526 !important;
+}
+
+figure.highlight .code pre {
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+}
+
+/* ===================================================
+   FIX 2: 深色模式 - 正文 / 标题颜色修复
+   =================================================== */
+[data-theme="dark"] #article-container {
+  color: var(--claude-text-primary) !important;
+  /* #E8E6DF */
+}
+
+[data-theme="dark"] #article-container h1,
+[data-theme="dark"] #article-container h2,
+[data-theme="dark"] #article-container h3,
+[data-theme="dark"] #article-container h4,
+[data-theme="dark"] #article-container h5,
+[data-theme="dark"] #article-container h6 {
+  color: #F0EDE6 !important;
+}
+
+[data-theme="dark"] #article-container p,
+[data-theme="dark"] #article-container li,
+[data-theme="dark"] #article-container td,
+[data-theme="dark"] #article-container th,
+[data-theme="dark"] #article-container span:not([class*="hljs"]):not([class*="highlight"]) {
+  color: var(--claude-text-primary) !important;
+}
+
+/* 深色模式 - 行内代码 */
+[data-theme="dark"] #article-container code:not(pre code):not(.hljs) {
+  background: #2A2822 !important;
+  color: #E8A089 !important;
+  border-color: #3D3A32 !important;
+}
+
+/* 深色模式 - 引用块文字 */
+[data-theme="dark"] #article-container blockquote,
+[data-theme="dark"] #article-container blockquote p {
+  color: var(--claude-text-primary) !important;
+}
+
+/* 深色模式 - 链接 */
+[data-theme="dark"] #article-container a:not(.btn) {
+  color: var(--claude-primary-light) !important;
+}
+
+/* 深色模式 - 卡片背景 */
+[data-theme="dark"] #post {
+  background: var(--claude-bg-secondary) !important;
+  border-color: var(--claude-border) !important;
+}
+
+[data-theme="dark"] #aside-content .card-widget {
+  background: var(--claude-bg-secondary) !important;
+  border-color: var(--claude-border) !important;
+}
+
+[data-theme="dark"] #recent-posts>.recent-post-item,
+[data-theme="dark"] .recent-post-item {
+  border-color: var(--claude-border) !important;
+}
+
+/* ===================================================
+   FIX 3: 代码块图标 — SVG 替代 Font Awesome
+   =================================================== */
+
+/* ----- 统一重置所有代码块内 FA 图标 ----- */
+figure.highlight i.fas,
+figure.highlight i.fa,
+figure.highlight i.far {
+  /* 清除 FA 字体 */
+  font-size: 0 !important;
+  font-family: Arial, sans-serif !important;
+  font-style: normal !important;
+  /* 固定尺寸 */
+  display: inline-block !important;
+  width: 16px !important;
+  height: 16px !important;
+  /* 重置定位（修复偏移） */
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  float: none !important;
+  vertical-align: middle !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  /* 背景图承载 SVG */
+  background-size: 14px 14px !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  line-height: 1 !important;
+}
+
+/* 杀掉 FA 的 ::before */
+figure.highlight i.fas::before,
+figure.highlight i.fa::before,
+figure.highlight i.far::before {
+  content: "" !important;
+  display: none !important;
+}
+
+/* ----- 复制按钮图标 (两个叠放的方框) ----- */
+figure.highlight i.fa-paste,
+figure.highlight i.fa-copy,
+figure.highlight i.copy-button {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='13' height='13' rx='2' ry='2'/%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/%3E%3C/svg%3E") !important;
+  cursor: pointer !important;
+  opacity: 0.7 !important;
+  transition: opacity 0.2s !important;
+}
+
+figure.highlight i.fa-paste:hover,
+figure.highlight i.fa-copy:hover,
+figure.highlight i.copy-button:hover {
+  opacity: 1 !important;
+}
+
+/* 复制成功 → 打勾 */
+figure.highlight i.fa-check,
+figure.highlight i.copy-button.copied {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234EC9B0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") !important;
+  opacity: 1 !important;
+}
+
+/* ----- 折叠按钮图标 (V 形箭头) ----- */
+figure.highlight i.fa-angle-down,
+figure.highlight i.expand {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+  cursor: pointer !important;
+  opacity: 0.7 !important;
+  transition: opacity 0.2s, transform 0.3s !important;
+}
+
+figure.highlight i.fa-angle-down:hover,
+figure.highlight i.expand:hover {
+  opacity: 1 !important;
+}
+
+/* 收起状态 → 箭头朝右 */
+figure.highlight i.fa-angle-down.closed,
+figure.highlight i.expand.closed {
+  transform: rotate(-90deg) !important;
+}
+
+/* 展开状态（有些主题用 rotate 翻转） */
+figure.highlight i.fa-angle-up,
+figure.highlight i.expand.open {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 15 12 9 18 15'/%3E%3C/svg%3E") !important;
+}
+
+/* ===================================================
+   FIX 4: 代码块头部布局 — 语言+折叠靠左，复制靠右
+   =================================================== */
+
+/* ----- figcaption 整体布局 ----- */
+figure.highlight figcaption {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 语言名称靠左 */
+figure.highlight figcaption span {
+  order: 1 !important;
+  margin-right: auto !important;
+}
+
+/* ----- highlight-tools 容器 ----- */
+figure.highlight .highlight-tools {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 语言标签靠左，推开右侧 */
+figure.highlight .highlight-tools .code-lang {
+  margin-right: auto !important;
+  order: 1 !important;
+}
+
+/* ----- 折叠按钮：紧跟语言标签 ----- */
+figure.highlight i.fa-angle-down,
+figure.highlight i.expand,
+figure.highlight .code-expand-btn,
+figure.highlight .expand {
+  order: 2 !important;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+}
+
+/* ----- 复制按钮：最右侧 ----- */
+figure.highlight i.fa-paste,
+figure.highlight i.fa-copy,
+figure.highlight i.copy-button,
+figure.highlight .copy-btn,
+figure.highlight .highlight-copy-btn {
+  order: 99 !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+
+/* ----- 如果折叠按钮在 figcaption 外面（绝对定位到左侧） ----- */
+figure.highlight>.code-expand-btn,
+figure.highlight>i.expand {
+  position: absolute !important;
+  left: 8px !important;
+  top: 8px !important;
+  right: auto !important;
+  z-index: 2 !important;
+}
+
+/* 保证 figure 是定位参考 */
+figure.highlight {
+  position: relative !important;
+}
