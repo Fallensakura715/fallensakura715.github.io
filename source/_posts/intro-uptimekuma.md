@@ -141,7 +141,7 @@ services:
 
 - **反向代理**：为了安全，建议使用 Nginx 或 Caddy 对 3001 端口进行反向代理，并配置 SSL 证书，通过 HTTPS 访问面板。SSL 证书可以用 certbot 获取。
 
-```nginx
+```
 server {
     listen 443 ssl;
     server_name your_domain;
@@ -191,4 +191,4 @@ server {
 _相关链接：_
 
 - _GitHub 项目地址: [https://github.com/louislam/uptime-kuma](https://github.com/louislam/uptime-kuma)_
-- _如何抓接口地址: [https://www.falnsakura.top/2026/01/HTTP%E3%80%81Cookie%E4%B8%8EOAuth%E8%AE%A4%E8%AF%81%EF%BC%9AAPI%E9%80%86%E5%90%91%E4%B8%8E%E5%90%8E%E7%AB%AF%E6%95%B0%E6%8D%AE%E7%9A%84%E6%8A%93%E5%8F%96/](https://www.falnsakura.top/2026/01/HTTP%E3%80%81Cookie%E4%B8%8EOAuth%E8%AE%A4%E8%AF%81%EF%BC%9AAPI%E9%80%86%E5%90%91%E4%B8%8E%E5%90%8E%E7%AB%AF%E6%95%B0%E6%8D%AE%E7%9A%84%E6%8A%93%E5%8F%96/)_
+- _如何抓接口地址: [https://www.falnsakura.top/2026/01/get-backend-apis/](https://www.falnsakura.top/2026/01/get-backend-apis/)_
