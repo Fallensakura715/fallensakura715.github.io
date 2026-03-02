@@ -8,10 +8,11 @@ tags:
   - 代理
 categories:
   - 技术
-cover: https://imgu.falnsakura.top/PicGo/2026/02/44f13e88e98848abca4641ccebcf4a87.png
+cover: https://imgu.falnsakura.top/PicGo/2026/03/efe43eacbccb88093d607eb21e455d2e.png
 ---
+
 > [!IMPORTANT]
-**免责声明**：本文纯属技术科普，介绍网络代理协议的发展历史与原理。请读者遵守所在地区的法律法规。
+**免责声明**：本文纯属技术科普，介绍网络代理协议的发展历史与原理，不提供代理软件的安装与使用。请读者遵守所在地区的法律法规。
 
 ## 前言
 
@@ -1540,22 +1541,7 @@ Clash 将"选哪个节点"和"什么流量走代理"这两个问题，从协议�
 
 ### 图形界面客户端
 
-Clash 的核心是一个命令行程序（clash-core/mihomo），在此之上，社区开发出了大量图形界面客户端：
-
-| 平台          | 客户端                                                                                   | 备注                         |
-| :---------- | :------------------------------------------------------------------------------------ | :------------------------- |
-| **Windows** | Clash for Windows (CFW)                                                               | 最广泛使用，2023年11月已删库停更，不支持新协议 |
-|             | Clash Verge Rev / Mihomo Party / Clash Mi / Clash-nyanpasu / GUI.for.Clash            | Mihomo内核客户端，目前主流           |
-| **macOS**   | ClashX / ClashX Pro                                                                   | Mac 平台原生体验较好               |
-|             | Clash Verge Rev / Mihomo Party / Clash Mi / Clash-nyanpasu / ClashMac / GUI.for.Clash | 跨平台 UI，适合多端统一              |
-| **iOS**     | Shadowrocket                                                                          | 付费应用，支持协议最全                |
-|             | Surge                                                                                 | 功能最强，价格最高                  |
-|             | Stash                                                                                 | 专为 Clash 规则设计的 iOS 客户端     |
-|             | Quantumult X                                                                          | 强大的 JS 脚本支持与 MITM 覆写       |
-| **Android** | Clash for Android (CFA)                                                               | 2023年已删库停更                 |
-|             | ClashMetaForAndroid                                                                   | 目前安卓端主流分支，支持更多新协议          |
-| **路由器**     | OpenClash                                                                             | OpenWrt 系统插件               |
-|             | ShellClash                                                                            | 适用于各类路由器终端的脚本版             |
+Clash 的核心是一个命令行程序（clash-core，Clash.Meta-现已更名为Mihomo），在此之上，社区开发出了大量图形界面客户端。
 
 2023年，包括 Clash for Windows、Clash for Android 在内的多个主要客户端作者相继删库，是这一年代理生态最动荡的事件。社区在短暂混乱后迅速分叉出多个替代项目，整体生态并未中断。
 
@@ -1734,10 +1720,21 @@ ECH（Encrypted Client Hello）的推进，有望从根本上消除 SNI 嗅探�
 没有人知道下一个回合会在哪里发生，也没有人知道谁会率先打破当前的均衡。
 
 但有一件事是确定的：**只要信息流动的需求存在，技术创新就不会停歇。**
+
 ## 相关链接
 
+[\[视频\] 盘点翻墙常见协议和内核 | 与中国防火墙的战争](https://youtu.be/K_fnYsWUjq8?si=X7CdCm4KIjrkbtmJ)
 [中国的防火长城是如何检测和封锁完全加密流量的](https://gfw.report/publications/usenixsecurity23/zh/)
+[Shadowsocks 协议](https://shadowsocks.org/)
 [V2Fly 社区文档](https://www.v2fly.org/)
+[VMess 协议](https://www.v2fly.org/developer/protocols/vmess.html)
+[Trojan 协议](https://trojan-gfw.github.io/trojan/)
+[Hysteria2 协议](https://v2.hysteria.network/)
+[TUIC 协议](https://github.com/tuic-protocol/tuic)
+[NaïveProxy 协议](https://github.com/klzgrad/naiveproxy)
 [XTLS/REALITY 协议](https://github.com/XTLS/REALITY)
 [QUIC 传输协议（RFC 9000）](https://www.rfc-editor.org/rfc/rfc9000)
+[HTTP/3（RFC 9114）](https://www.rfc-editor.org/rfc/rfc9114)
+[TLS 1.3（RFC 8446）](https://www.rfc-editor.org/rfc/rfc8446)
+[SOCKS5 协议（RFC 1928）](https://www.rfc-editor.org/rfc/rfc1928)
 [An Analysis of China’s “Great Cannon”](https://www.usenix.org/system/files/conference/foci15/foci15-paper-marczak.pdf)
