@@ -1,5 +1,5 @@
 ---
-title: Claude Code：工作方式、优势与使用方法
+title: Claude Code 使用方法
 date: 2026-03-16 10:13:25
 tags:
   - AI
