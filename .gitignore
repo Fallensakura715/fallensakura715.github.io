@@ -8,3 +8,5 @@ public/
 _multiconfig.yml
 source/.obsidian/
 docs/
+.claude/
+claude-origin.css

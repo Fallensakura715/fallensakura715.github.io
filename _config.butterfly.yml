@@ -20,7 +20,6 @@ nav:
 menu:
   Home: / || fas fa-home
   Archives: /archives/ || fas fa-archive
-  Moments: /shuoshuo/ || fas fa-camera
   Links: /link/ || fas fa-link
   Misc||fas fa-list:
     Categories: /categories/ || fas fa-folder-open
@@ -828,8 +827,8 @@ beautify:
 font:
   global_font_size:
   code_font_size:
-  font_family: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif'
-  code_font_family: '"JetBrains Mono", "Fira Code", Consolas, monospace'
+  font_family: '"Anthropic Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif'
+  code_font_family: '"Anthropic Mono", "JetBrains Mono", "Fira Code", Consolas, monospace'
 
 # Font settings for the site title and site subtitle
 blog_title_font:
@@ -1061,19 +1060,14 @@ css_prefix: true
 inject:
   head:
     # - <link rel="stylesheet" href="/xxx.css">
-    # Google Fonts - 引入 Inter 字体
-    - <link rel="preconnect" href="https://fonts.googleapis.com">
-    - <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    - <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    # 自定义 Claude 主题 CSS
-    # - <link rel="stylesheet" href="/css/claude-theme.css">
     - <link rel="stylesheet" href="/css/claude-theme-lite.css">
-
-    # - <link rel="stylesheet" href="/css/claude-header.css">
   bottom:
     # - <script src="xxxx"></script>
     # - <div class="aplayer no-destroy" data-id="12682020018" data-server="netease" data-type="playlist" data-mini="true" data-fixed="true" data-autoplay="false"> </div>
     - <script src="/js/callout-parser.js"></script>
+    - <script src="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex.min.js"></script>
+    - <script src="https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/contrib/auto-render.min.js"></script>
+    - <script src="/js/katex-auto-render.js"></script>
 
 # CDN Settings
 # Don't modify the following settings unless you know how they work

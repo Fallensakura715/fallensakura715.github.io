@@ -118,9 +118,9 @@ i18n:
 # HexoPlusPlus Talk
 # see https://hexoplusplus.js.org
 hpptalk:
-  enable: true 
+  enable: false
   domain: hpp.falnsakura.top
-  path: https://avatars.githubusercontent.com/u/172838098
+  path: hpptalk
   limit:
   start:
   js:

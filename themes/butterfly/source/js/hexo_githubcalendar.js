@@ -148,14 +148,14 @@ function GithubCalendar(git_githubapiurl, git_color, git_user) {
 
           github_calendar_c.onmousemove = function (event) {
             if (document.querySelector('.gitmessage')) {
-              git_tooltip_container.innerHTML = "";
+              document.querySelectorAll('.gitmessage').forEach(function (el) { el.remove(); });
             }
             getMousePos(github_calendar_c, event, boxSize);
           };
 
           git_tooltip_container.onmousemove = function () {
             if (document.querySelector('.gitmessage')) {
-              git_tooltip_container.innerHTML = "";
+              document.querySelectorAll('.gitmessage').forEach(function (el) { el.remove(); });
             }
           };
 
@@ -172,10 +172,12 @@ function GithubCalendar(git_githubapiurl, git_color, git_user) {
               if (0 <= lenthx && lenthx <= boxSize && 0 <= lenthy && lenthy <= boxSize) {
                 var git_span1 = item.date;
                 var git_span2 = item.count;
-                var git_x = event.clientX - 100;
-                var git_y = event.clientY - 45;
+                var cellCenterX = rect.left + item.x + boxSize / 2;
+                var cellTopY = rect.top + item.y;
+                var git_x = Math.min(window.innerWidth - 12, Math.max(12, cellCenterX));
+                var git_y = Math.max(8, cellTopY - 10);
                 var html = tooltip_html(git_x, git_y, git_span1, git_span2);
-                append_div_gitcalendar(git_tooltip_container, html);
+                append_div_gitcalendar(document.body, html);
                 break;
               }
             }
@@ -281,7 +283,7 @@ function GithubCalendar(git_githubapiurl, git_color, git_user) {
       window.onscroll = function () {
         var git_tooltip_container = document.getElementById('git_tooltip_container');
         if (git_tooltip_container && document.querySelector('.gitmessage')) {
-          git_tooltip_container.innerHTML = "";
+          document.querySelectorAll('.gitmessage').forEach(function (el) { el.remove(); });
         }
       };
 
@@ -307,7 +309,7 @@ function GithubCalendar(git_githubapiurl, git_color, git_user) {
       var tooltip_html = (x, y, span1, span2) => {
         var text = (span2 === 0 ? 'No contributions on ' + formatDateOrdinal(span1) + '.' : span2 + ' contribution' + (span2 > 1 ? 's' : '') + ' on ' + formatDateOrdinal(span1) + '.');
         var html = '';
-        html += '<div class="gitmessage" style="top:' + y + 'px;left:' + x + 'px;position: fixed;z-index:9999"><div class="angle-wrapper" style="display:block;"><span>' + text + '</span></div></div>';
+        html += '<div class="gitmessage" style="top:' + y + 'px;left:' + x + 'px;position:fixed;z-index:9999;transform:translate(-50%, calc(-100% - 8px));pointer-events:none;"><div class="angle-wrapper" style="display:block;"><span>' + text + '</span></div></div>';
         return html;
       };
 
