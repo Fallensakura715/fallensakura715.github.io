@@ -1,4 +1,4 @@
-script.
+script(data-pjax).
   (async () => {
     const showKatex = () => {
       document.querySelectorAll('#article-container .katex').forEach(el => el.classList.add('katex-show'))
@@ -7,7 +7,7 @@ script.
     if (!window.katex_js_css) {
       window.katex_js_css = true
       await btf.getCSS('!{url_for(theme.asset.katex)}')
-      if (!{theme.math.katex.copy_tex}) {
+      if (#{theme.math.katex.copy_tex}) {
         await btf.getScript('!{url_for(theme.asset.katex_copytex)}')
       }
     }
