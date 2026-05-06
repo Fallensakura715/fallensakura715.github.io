@@ -1060,7 +1060,7 @@ css_prefix: true
 inject:
   head:
     # - <link rel="stylesheet" href="/xxx.css">
-    - <link rel="stylesheet" href="/css/claude-theme-lite.css">
+    - <link rel="stylesheet" href="/css/claude-theme.css">
   bottom:
     # - <script src="xxxx"></script>
     # - <div class="aplayer no-destroy" data-id="12682020018" data-server="netease" data-type="playlist" data-mini="true" data-fixed="true" data-autoplay="false"> </div>
