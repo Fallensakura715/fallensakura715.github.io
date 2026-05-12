@@ -8,7 +8,7 @@ tags:
   - 哈巴雪山
 categories:
   - 生活
-cover: https://imgu.falnsakura.top/PicGo/2026/01/a547bb7c8f3d61031167ac7aa36d74e3.png
+cover: https://imgu.falnsakura.top/PicGo/2026/05/36fb4669b642b8b7c887e7aae9de67f4.png
 ---
 >回来以后,我反复翻看登哈巴雪山时候的照片、视频。视频里风雪很大,人走得也很慢,但我看着看着就有种怀念当时的感觉,嘴角不自觉地上扬。
 >
