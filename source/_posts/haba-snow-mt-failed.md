@@ -102,16 +102,16 @@ cover: https://imgu.falnsakura.top/PicGo/2026/01/a547bb7c8f3d61031167ac7aa36d74e
 
 <img src="https://imgu.falnsakura.top/PicGo/2026/05/92e34a6b78640147665dd3120bb343ed.png" width="85%">
 
-<video src="https://imgu.falnsakura.top/PicGo/2026/05/c61a806f5b680c09347c9d6413e4e906.mp4" width="85%"></video>
+<video src="https://imgu.falnsakura.top/PicGo/2026/05/c61a806f5b680c09347c9d6413e4e906.mp4" width="85%" autoplay muted loop playsinline></video>
 
 回去的路上可以穿过酒吧街,都是清吧,在外面看看就好了。
 
 <img src="https://imgu.falnsakura.top/PicGo/2026/05/ea5dbcbaa414dd25de89487c6b6f93e4.png" width="85%">
 <img src="https://imgu.falnsakura.top/PicGo/2026/05/bb86947805bec19ffe232d30aba95ec0.png" width="85%">
 
-<video src="https://imgu.falnsakura.top/PicGo/2026/05/bb5c0f4adc6b8e552787725587f6890b.mp4" width="85%"></video>
-<video src="https://imgu.falnsakura.top/PicGo/2026/05/2c3f7f8d9a6c30ce43b3ca91b0d14e11.mp4" width="85%"></video>
-<video src="https://imgu.falnsakura.top/PicGo/2026/05/7f99deefb778ddc3363c79004cd1b6e8.mp4" width="85%"></video>
+<video src="https://imgu.falnsakura.top/PicGo/2026/05/bb5c0f4adc6b8e552787725587f6890b.mp4" width="85%" autoplay muted loop playsinline></video>
+<video src="https://imgu.falnsakura.top/PicGo/2026/05/2c3f7f8d9a6c30ce43b3ca91b0d14e11.mp4" width="85%" autoplay muted loop playsinline></video>
+<video src="https://imgu.falnsakura.top/PicGo/2026/05/7f99deefb778ddc3363c79004cd1b6e8.mp4" width="85%" autoplay muted loop playsinline></video>
 
 下来走一会就到木府了,进去要买票,我打了个卡就润了。
 
@@ -138,7 +138,7 @@ cover: https://imgu.falnsakura.top/PicGo/2026/01/a547bb7c8f3d61031167ac7aa36d74e
 清晨的古城非常安静,氛围极好。喝完咖啡,我再次爬上观景台,眺望白天的古城。
 
 <img src="https://imgu.falnsakura.top/PicGo/2026/05/2dcc3688fff150113d14a167802ccd91.png" width="85%">
-<video src="https://imgu.falnsakura.top/PicGo/2026/05/050a78734347aca5a216afb590166422.mp4" width="85%"></video>
+<video src="https://imgu.falnsakura.top/PicGo/2026/05/050a78734347aca5a216afb590166422.mp4" width="85%" autoplay muted loop playsinline></video>
 
 下午和我的队友碰面,都是年轻人哈哈,还有个高三生~~(高三竟然还能出来玩)~~,然后出发去哈巴村。
 
@@ -205,7 +205,7 @@ cover: https://imgu.falnsakura.top/PicGo/2026/01/a547bb7c8f3d61031167ac7aa36d74e
 还好可以烤火。
 
 <img src="https://imgu.falnsakura.top/PicGo/2026/05/f5153b662f1566ce9feae903e7d4df4d.png" width="85%">
-<video src="https://imgu.falnsakura.top/PicGo/2026/05/fa175149f67618e32be752bf24fe9d0f.mp4" width="85%"></video>
+<video src="https://imgu.falnsakura.top/PicGo/2026/05/fa175149f67618e32be752bf24fe9d0f.mp4" width="85%" autoplay muted loop playsinline></video>
 
 我说我跑过马拉松,~~向导开玩笑说我只能到4900,哈哈,我也没有嚣张啊,最后其实连4900都没到~~。
 
@@ -238,7 +238,7 @@ cover: https://imgu.falnsakura.top/PicGo/2026/01/a547bb7c8f3d61031167ac7aa36d74e
 
 但是到了4500铁皮房,现实给了我当头一棒。我们停下来到铁皮房休息,发现没有向导想开路了,都不想上去。开路很费体能,如果有一个向导开,其他人就都跟过去,也不主动去前面开路,所以都不上去开路。
 
-<video src="https://imgu.falnsakura.top/PicGo/2026/05/133f6107a74659af3aa45f44e82494a2.mp4" width="85%"></video>
+<video src="https://imgu.falnsakura.top/PicGo/2026/05/133f6107a74659af3aa45f44e82494a2.mp4" width="85%" autoplay muted loop playsinline></video>
 
 而且越往上雪越厚,向导也觉得危险。
 
@@ -253,11 +253,11 @@ cover: https://imgu.falnsakura.top/PicGo/2026/01/a547bb7c8f3d61031167ac7aa36d74e
 
 大雪纷飞。
 
-<video src="https://imgu.falnsakura.top/PicGo/2026/05/24005eb79d297fb0eab70db74874943b.mp4" width="85%"></video>
+<video src="https://imgu.falnsakura.top/PicGo/2026/05/24005eb79d297fb0eab70db74874943b.mp4" width="85%" autoplay muted loop playsinline></video>
 
 超级厚的雪。
 
-<video src="https://imgu.falnsakura.top/PicGo/2026/05/5b3bb053c503c351914acbb615b16654.mp4" width="85%"></video>
+<video src="https://imgu.falnsakura.top/PicGo/2026/05/5b3bb053c503c351914acbb615b16654.mp4" width="85%" autoplay muted loop playsinline></video>
 
 昨天这里还是绿绿的,今天下去就变成银色了。
 
