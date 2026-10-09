@@ -1,0 +1,16 @@
+{{- $music := .Page.Params.music | default .Page.Site.Params.music -}}
+{{- $id := $music.playlistId -}}
+{{- $zh := eq .Page.Language.Lang "zh" -}}
+{{- if not $id -}}
+    {{- errorf "Music page %s is missing music.playlistId" .Page.File.Path -}}
+{{- end -}}
+<section class="music-player" data-music-player data-playlist-id="{{ $id }}" data-api="{{ $music.api }}" data-source-apis="{{ $music.sourceApis | default slice | jsonify }}" data-language="{{ .Page.Language.Lang }}">
+    <div class="music-player__intro">
+        <p>{{ if $zh }}听点音乐，慢慢逛。{{ else }}Some music while you browse.{{ end }}</p>
+        <a href="https://music.163.com/#/playlist?id={{ $id }}" target="_blank" rel="noopener noreferrer">{{ if $zh }}在网易云打开歌单{{ else }}Open playlist on NetEase{{ end }}</a>
+    </div>
+    <p class="music-player__status" data-music-status role="status" aria-live="polite">{{ if $zh }}正在加载歌单…{{ else }}Loading playlist…{{ end }}</p>
+    <button class="music-player__retry" data-music-retry type="button" hidden>{{ if $zh }}重新加载{{ else }}Retry{{ end }}</button>
+    <div data-music-container aria-label="{{ if $zh }}音乐播放器{{ else }}Music player{{ end }}"></div>
+    <noscript>{{ if $zh }}开启 JavaScript 即可播放，也可以直接打开网易云歌单。{{ else }}Enable JavaScript to play here, or open the playlist on NetEase.{{ end }}</noscript>
+</section>

@@ -1,0 +1,6 @@
+{{- if .HasShortcode "music-player" -}}
+    {{- $css := slice (resources.Get "vendor/aplayer/APlayer.min.css") (resources.Get "css/music-player.css") | resources.Concat "css/music-player.css" | minify | fingerprint -}}
+    <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}" crossorigin="anonymous">
+    {{- $js := slice (resources.Get "vendor/aplayer/APlayer.min.js") (resources.Get "js/music-player.js") | resources.Concat "js/music-player.js" | minify | fingerprint -}}
+    <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" crossorigin="anonymous" defer></script>
+{{- end -}}

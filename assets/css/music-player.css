@@ -1,0 +1,75 @@
+.music-player {
+    --music-progress: #507ca3;
+    margin-block: 1rem;
+    color: var(--card-text-color-main);
+}
+.music-player__intro {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem 2rem;
+}
+.music-player__intro p { margin: 0; }
+.music-player__intro a { font-size: 1.4rem; }
+.music-player__status {
+    margin: 1rem 0 1.8rem;
+    color: var(--card-text-color-secondary);
+    font-size: 1.4rem;
+}
+.music-player__retry {
+    padding: .7rem 1.4rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--card-separator-color);
+    border-radius: 6px;
+    background: var(--card-background);
+    color: var(--card-text-color-main);
+    font: inherit;
+    cursor: pointer;
+}
+.music-player__retry[hidden] { display: none; }
+.music-player__retry:focus-visible,
+.music-player__intro a:focus-visible {
+    outline: 2px solid var(--music-progress);
+    outline-offset: 4px;
+}
+.music-player .aplayer {
+    margin: 0;
+    border: 1px solid var(--card-separator-color);
+    border-radius: 8px;
+    box-shadow: none;
+    background: var(--card-background);
+    color: var(--card-text-color-main);
+    font-family: var(--base-font-family);
+}
+.music-player .aplayer .aplayer-info,
+.music-player .aplayer .aplayer-list ol li {
+    border-color: var(--card-separator-color);
+}
+.music-player .aplayer .aplayer-list ol li:hover,
+.music-player .aplayer .aplayer-list ol li.aplayer-list-light {
+    background: var(--card-background-selected);
+}
+.music-player .aplayer .aplayer-info .aplayer-music .aplayer-author,
+.music-player .aplayer .aplayer-info .aplayer-controller .aplayer-time,
+.music-player .aplayer .aplayer-list ol li .aplayer-list-index,
+.music-player .aplayer .aplayer-list ol li .aplayer-list-author {
+    color: var(--card-text-color-secondary);
+}
+.music-player .aplayer .aplayer-info .aplayer-controller .aplayer-time .aplayer-icon path {
+    fill: var(--card-text-color-secondary);
+}
+.music-player .aplayer .aplayer-lrc p {
+    color: var(--card-text-color-main);
+}
+.music-player .aplayer .aplayer-lrc:before {
+    background: linear-gradient(180deg, var(--card-background), transparent);
+}
+.music-player .aplayer .aplayer-lrc:after {
+    background: linear-gradient(0deg, var(--card-background), transparent);
+}
+@media (max-width: 480px) {
+    .music-player__intro { display: block; }
+    .music-player__intro a { display: inline-block; margin-top: .5rem; }
+    .music-player .aplayer .aplayer-list ol li .aplayer-list-author { max-width: 30%; }
+}
