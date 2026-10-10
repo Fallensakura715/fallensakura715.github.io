@@ -1,0 +1,102 @@
+name: Build Hugo and publish main
+
+on:
+  push:
+    branches: [hugo]
+  pull_request:
+    branches: [hugo]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hugo-blog-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  HUGO_VERSION: "0.166.0"
+  HUGO_TAR_SHA256: "0e39b901e3f919f1daae05c8ff64f0c14c8a348ef46886d63f8e6d1bb2653885"
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out Hugo source and theme
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Install Hugo Extended
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            --output "$RUNNER_TEMP/hugo.tar.gz" \
+            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.tar.gz"
+          printf '%s  %s\n' "$HUGO_TAR_SHA256" "$RUNNER_TEMP/hugo.tar.gz" | sha256sum --check --status
+          mkdir -p "$RUNNER_TEMP/hugo-bin"
+          tar -xzf "$RUNNER_TEMP/hugo.tar.gz" -C "$RUNNER_TEMP/hugo-bin" hugo
+          echo "$RUNNER_TEMP/hugo-bin" >> "$GITHUB_PATH"
+
+      - name: Build production site
+        shell: bash
+        env:
+          HUGO_RESOURCEDIR: ${{ runner.temp }}/hugo-resources
+        run: |
+          set -euo pipefail
+          hugo version
+          hugo --environment production --gc --minify --cleanDestinationDir \
+            --destination public \
+            --cacheDir "$RUNNER_TEMP/hugo-cache"
+          test -s public/index.html
+          test -s public/about/index.html
+          touch public/.nojekyll
+
+      - name: Upload generated site
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: hugo-site
+          path: public/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/hugo'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Check out published branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+
+      - name: Download generated site
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: hugo-site
+          path: ${{ runner.temp }}/hugo-site
+
+      - name: Update main with generated files
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          rsync -a --delete --exclude='/.git/' "$RUNNER_TEMP/hugo-site/" ./
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all
+          if git diff --cached --quiet; then
+            echo "Generated site is unchanged."
+            exit 0
+          fi
+          git commit -m "Deploy Hugo from ${SOURCE_SHA}"
+          git push origin HEAD:main
