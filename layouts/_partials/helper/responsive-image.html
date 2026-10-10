@@ -1,0 +1,44 @@
+{{- $resource := .Resource -}}
+{{- $widths := .Widths -}}
+{{- $attributes := merge (dict "decoding" "async") (.Attributes | default dict) -}}
+{{- $original := index $attributes "src" -}}
+{{- $preserved := index hugo.Data.image_cache $original -}}
+
+{{- if and $preserved $preserved.variants.responsive -}}
+    {{- $attributes = merge $attributes $preserved.variants.responsive -}}
+    {{- if in (index $attributes "class" | default "") "gallery-image" -}}
+        {{- $attributes = merge $attributes (dict "src" $original) -}}
+    {{- end -}}
+{{- else if and (ne site.Params.imageProcessing.enabled false) $widths $resource (reflect.IsImageResourceProcessable $resource) (ne $resource.MediaType.SubType "gif") -}}
+    {{- $srcset := slice -}}
+    {{- $fallback := "" -}}
+    {{- $candidates := slice -}}
+    {{- range $widths -}}
+        {{- $width := int (math.Min . $resource.Width) -}}
+        {{- if not (in $candidates $width) -}}
+            {{- $candidates = $candidates | append $width -}}
+        {{- end -}}
+    {{- end -}}
+    {{- range $candidates -}}
+        {{- $resized := $resource.Resize (printf "%dx webp q82" .) -}}
+        {{- $resized = resources.Copy (printf "media/images/%s" (strings.TrimPrefix "/" $resized.RelPermalink)) $resized -}}
+        {{- $srcset = $srcset | append (printf "%s %dw" $resized.RelPermalink .) -}}
+        {{- if or (not $fallback) (le . 1200) -}}
+            {{- $fallback = $resized.RelPermalink -}}
+        {{- end -}}
+    {{- end -}}
+    {{- $attributes = merge $attributes (dict "srcset" (delimit $srcset ", ")) -}}
+    {{- /* Stack's gallery uses img.src for the full-size lightbox link. */ -}}
+    {{- if not (in (index $attributes "class" | default "") "gallery-image") -}}
+        {{- $attributes = merge $attributes (dict "src" $fallback) -}}
+    {{- end -}}
+{{- end -}}
+{{- if and (index $attributes "srcset") (eq (index $attributes "loading") "lazy") (index $attributes "sizes") -}}
+    {{- $attributes = merge $attributes (dict "sizes" (printf "auto, %s" (index $attributes "sizes"))) -}}
+{{- end -}}
+
+<img {{- range $key, $value := $attributes -}}
+    {{- if $value -}}
+        {{- printf " %s=%q" (lower $key) (printf "%v" $value) | safeHTMLAttr -}}
+    {{- end -}}
+{{- end -}}>

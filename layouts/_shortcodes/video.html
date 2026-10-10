@@ -1,0 +1,20 @@
+{{- $src := .Get "src" | default (.Get 0) -}}
+{{- $title := .Get "title" | default "Video" -}}
+{{- $width := .Get "width" | default "100%" -}}
+{{- $ratio := .Get "ratio" | default "16 / 9" -}}
+<div class="lazy-video-container" style="width: {{ $width | safeCSS }}; aspect-ratio: {{ $ratio | safeCSS }};">
+<video class="lazy-video" controls preload="none" playsinline
+    data-src="{{ $src | relURL }}"
+    {{ if eq (.Get "autoplay") "true" }}data-autoplay="true"{{ end }}
+    {{ if eq (.Get "muted") "true" }}muted{{ end }}
+    {{ if eq (.Get "loop") "true" }}loop{{ end }}
+    {{ with .Get "poster" }}poster="{{ . | relURL }}"{{ end }}
+    style="aspect-ratio: {{ $ratio | safeCSS }};"
+    aria-label="{{ $title }}" title="{{ $title }}">
+    <p><a href="{{ $src | relURL }}">{{ $title }}</a></p>
+</video>
+<button class="lazy-video-play" type="button" hidden aria-label="Play: {{ $title }}" title="{{ $title }}">
+    {{ partial "helper/icon" "media-play" }}
+</button>
+</div>
+<noscript><p><a href="{{ $src | relURL }}">{{ $title }}</a></p></noscript>

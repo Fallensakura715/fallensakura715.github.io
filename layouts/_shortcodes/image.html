@@ -1,0 +1,26 @@
+{{- $resources := .Page.Resources -}}
+{{- $url := urls.Parse (.Get "src") -}}
+{{- if not $url.Scheme -}}
+    {{- if resources.Get (.Get "src") -}}
+        {{- $resources = resources -}}
+    {{- end -}}
+{{- end -}}
+{{- $image := partial "helper/image" (dict "Image" (.Get "src") "Resources" $resources "Context" .Page) -}}
+{{- $style := .Get "style" | default "" -}}
+{{- with .Get "width" -}}
+    {{- $style = printf "width: %s; %s" . $style -}}
+{{- end -}}
+{{- partial "helper/responsive-image" (dict
+    "Resource" $image.Resource
+    "Widths" (cond .Page.Site.Params.ImageProcessing.Content.Enabled .Page.Site.Params.ImageProcessing.Content.Widths nil)
+    "Attributes" (dict
+        "src" $image.Permalink
+        "width" $image.Width
+        "height" $image.Height
+        "alt" (.Get "alt" | default "")
+        "title" (.Get "title" | default "")
+        "style" $style
+        "loading" "lazy"
+        "sizes" "(max-width: 767px) calc(100vw - 60px), (max-width: 1023px) 640px, (max-width: 1279px) 890px, 1172px"
+    )
+) -}}

@@ -4,3 +4,7 @@
         data-site-host="{{ (urls.Parse .Site.BaseURL).Host }}"
         {{- if .Site.Params.visitorStats.enabled }} data-vercount-src="{{ .Site.Params.visitorStats.scriptUrl }}"{{ end }}></script>
 {{- end -}}
+{{- if .IsPage -}}
+    {{- $media := resources.Get "js/media-loading.js" | minify | fingerprint -}}
+    <script src="{{ $media.RelPermalink }}" integrity="{{ $media.Data.Integrity }}" crossorigin="anonymous" defer></script>
+{{- end -}}

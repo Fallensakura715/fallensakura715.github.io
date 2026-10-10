@@ -1,0 +1,36 @@
+{{- $resource := .Resource -}}
+{{- $width := .Width -}}
+{{- $height := .Height -}}
+{{- $attributes := merge (dict "decoding" "async") (.Attributes | default dict) -}}
+{{- $preserved := index hugo.Data.image_cache (index $attributes "src") -}}
+{{- $variant := false -}}
+{{- with $preserved -}}
+    {{- $variant = index .variants (printf "%dx%d" $width $height) -}}
+{{- end -}}
+
+{{- if $variant -}}
+    {{- $attributes = merge $attributes $variant -}}
+{{- else if and (ne site.Params.imageProcessing.enabled false) .Resize $resource (reflect.IsImageResourceProcessable $resource) (ne $resource.MediaType.SubType "gif") $width $height -}}
+    {{- $srcset := slice -}}
+    {{- range (slice 1 2) -}}
+        {{- $w := mul $width . -}}
+        {{- $h := mul $height . -}}
+        {{- if and (le $w $resource.Width) (le $h $resource.Height) -}}
+            {{- $resized := $resource.Fill (printf "%dx%d webp q82" $w $h) -}}
+            {{- $resized = resources.Copy (printf "media/images/%s" (strings.TrimPrefix "/" $resized.RelPermalink)) $resized -}}
+            {{- $srcset = $srcset | append (printf "%s %dx" $resized.RelPermalink .) -}}
+            {{- if eq . 1 -}}
+                {{- $attributes = merge $attributes (dict "src" $resized.RelPermalink) -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+    {{- if $srcset -}}
+        {{- $attributes = merge $attributes (dict "width" $width "height" $height "srcset" (delimit $srcset ", ")) -}}
+    {{- end -}}
+{{- end -}}
+
+<img {{- range $key, $value := $attributes -}}
+    {{- if $value -}}
+        {{- printf " %s=%q" (lower $key) (printf "%v" $value) | safeHTMLAttr -}}
+    {{- end -}}
+{{- end -}}>

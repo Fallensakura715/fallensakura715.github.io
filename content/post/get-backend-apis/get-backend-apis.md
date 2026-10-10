@@ -71,7 +71,7 @@ image: https://imgu.falnsakura.top/PicGo/2026/01/57a508b2b0fe9e71a9c817bddd91eed
 ``` 
 这种 **JSON 格式**的数据时，恭喜你，你找到了后端接口
 
-<img src="https://imgu.falnsakura.top/PicGo/2026/01/454e4094da553207a248800dd1683e2d.png" style="width: 70%; display: block; margin: 0 auto;">
+{{< image src="https://imgu.falnsakura.top/PicGo/2026/01/454e4094da553207a248800dd1683e2d.png" style="width: 70%; display: block; margin: 0 auto;" >}}
 
 ### 身份验证
 

@@ -1,0 +1,42 @@
+{{- $result := dict -}}
+{{- with .Image -}}
+    {{- $result = dict "Resource" nil "Permalink" . "Width" nil "Height" nil -}}
+{{- end -}}
+
+{{- if .Image -}}
+    {{- $preserved := index hugo.Data.image_cache .Image -}}
+    {{- if $preserved -}}
+        {{- $result = merge $result (dict "Width" (int $preserved.width) "Height" (int $preserved.height)) -}}
+    {{- else -}}
+        {{- $url := urls.Parse .Image -}}
+        {{- $resource := false -}}
+        {{- $local := not (in (slice "https" "http") $url.Scheme) -}}
+        {{- if $local -}}
+            {{- $resource = .Resources.Get (printf "%s" (.Image | safeURL)) -}}
+        {{- else if ne site.Params.imageProcessing.enabled false -}}
+            {{- with try (resources.GetRemote $url (dict "timeout" site.Params.imageProcessing.external.timeout)) -}}
+                {{- with .Err -}}
+                    {{- warnf "Failed to fetch remote resource %q: %s" $url . -}}
+                {{- else with .Value -}}
+                    {{- $resource = . -}}
+                {{- else -}}
+                    {{- warnf "Unable to get remote resource %q" $url -}}
+                {{- end -}}
+            {{- end -}}
+        {{- end -}}
+
+        {{- if $resource -}}
+            {{- if and (ne site.Params.imageProcessing.enabled false) site.Params.imageProcessing.autoOrient (reflect.IsImageResourceProcessable $resource) -}}
+                {{- $resource = $resource | images.Filter images.AutoOrient -}}
+            {{- end -}}
+            {{- $result = merge $result (dict "Resource" $resource) -}}
+            {{- if $local -}}
+                {{- $result = merge $result (dict "Permalink" $resource.RelPermalink) -}}
+            {{- end -}}
+            {{- if reflect.IsImageResourceWithMeta $resource -}}
+                {{- $result = merge $result (dict "Width" $resource.Width "Height" $resource.Height) -}}
+            {{- end -}}
+        {{- end -}}
+    {{- end -}}
+{{- end -}}
+{{- return $result -}}

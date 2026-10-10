@@ -33,7 +33,7 @@ image: https://imgu.falnsakura.top/PicGo/2026/01/a547bb7c8f3d61031167ac7aa36d74e
 | :------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------: |
 |                                    **52.63 km** 轨迹图                                    |                                       **4137 m** 累计爬升                                        |
 
-<img src="https://imgu.falnsakura.top/PicGo/2026/01/b24f016460db5d411e9cf9f2ba0c6eff.png" style="width: 70%; display: block; margin: 0 auto;">
+{{< image src="https://imgu.falnsakura.top/PicGo/2026/01/b24f016460db5d411e9cf9f2ba0c6eff.png" style="width: 70%; display: block; margin: 0 auto;" >}}
 
 ### 爬升的虐点：永无止境的石阶
 

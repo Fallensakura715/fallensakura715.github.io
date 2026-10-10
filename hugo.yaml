@@ -1,8 +1,10 @@
 baseurl: https://falnsakura.top/
 locale: en-US
 theme: hugo-theme-stack
-title: fallensakura715's blog
+title: Fallensakura715's Blog
 copyright: fallensakura715
+resourceDir: .cache/resources
+timeout: 5m
 
 # Theme i18n support
 # Chinese locales: zh, zh-hant-hk, zh-hant-tw
@@ -219,10 +221,16 @@ params:
         default: auto
 
     imageProcessing:
+        # Generate WebP for new images. Existing static WebP images are always reused.
+        # false: use newly added image URLs as-is (compress before uploading with PicGo).
+        enabled: false
+        external:
+            timeout: 20s
         thumbnail:
             enabled: true
         content:
             enabled: true
+            widths: [480, 800, 1200, 1600]
 
 ### Custom menu
 ### See https://stack.jimmycai.com/config/menu
