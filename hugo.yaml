@@ -53,6 +53,7 @@ params:
         scriptUrl: https://events.vercount.one/js
         allowedHosts:
             - falnsakura.top
+            - www.falnsakura.top
             - fallensakura715.github.io
     visitorMap:
         enabled: true
