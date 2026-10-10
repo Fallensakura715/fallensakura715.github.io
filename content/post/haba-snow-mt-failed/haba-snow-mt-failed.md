@@ -102,16 +102,16 @@ image: https://imgu.falnsakura.top/PicGo/2026/05/36fb4669b642b8b7c887e7aae9de67f
 
 {{< image src="https://imgu.falnsakura.top/PicGo/2026/05/92e34a6b78640147665dd3120bb343ed.png" width="85%" alt="观景台俯瞰丽江古城夜景" >}}
 
-{{< video src="/media/videos/c61a806f5b680c09347c9d6413e4e906.mp4" poster="/media/videos/c61a806f5b680c09347c9d6413e4e906.webp" ratio="1280 / 720" width="85%" autoplay="true" muted="true" loop="true" title="观景台俯瞰丽江古城夜景视频" >}}
+{{< video src="https://imgu.falnsakura.top/PicGo/2026/10/04672f8525fbfc83b9c190cfd5bca186.mp4" poster="https://imgu.falnsakura.top/PicGo/2026/10/57986d36b018b7d73064b5cceb1419bb.webp" ratio="1280 / 720" width="85%" autoplay="true" muted="true" loop="true" title="观景台俯瞰丽江古城夜景视频" >}}
 
 回去的路上可以穿过酒吧街,都是清吧,在外面看看就好了。
 
 {{< image src="https://imgu.falnsakura.top/PicGo/2026/05/ea5dbcbaa414dd25de89487c6b6f93e4.png" width="85%" alt="丽江古城酒吧街外景一" >}}
 {{< image src="https://imgu.falnsakura.top/PicGo/2026/05/bb86947805bec19ffe232d30aba95ec0.png" width="85%" alt="丽江古城酒吧街外景二" >}}
 
-{{< video src="/media/videos/bb5c0f4adc6b8e552787725587f6890b.mp4" poster="/media/videos/bb5c0f4adc6b8e552787725587f6890b.webp" ratio="1280 / 720" width="85%" autoplay="true" muted="true" loop="true" title="丽江古城酒吧街清吧夜景视频一" >}}
-{{< video src="/media/videos/2c3f7f8d9a6c30ce43b3ca91b0d14e11.mp4" poster="/media/videos/2c3f7f8d9a6c30ce43b3ca91b0d14e11.webp" ratio="1280 / 720" width="85%" autoplay="true" muted="true" loop="true" title="丽江古城酒吧街夜间灯光视频二" >}}
-{{< video src="/media/videos/7f99deefb778ddc3363c79004cd1b6e8.mp4" poster="/media/videos/7f99deefb778ddc3363c79004cd1b6e8.webp" ratio="1280 / 720" width="85%" autoplay="true" muted="true" loop="true" title="丽江古城酒吧街夜景氛围视频三" >}}
+{{< video src="https://imgu.falnsakura.top/PicGo/2026/10/e065a8bb5856efab73af01a8ba8148fa.mp4" poster="https://imgu.falnsakura.top/PicGo/2026/10/b6d0cca6d510867f9cf10002d32351f7.webp" ratio="1280 / 720" width="85%" autoplay="true" muted="true" loop="true" title="丽江古城酒吧街清吧夜景视频一" >}}
+{{< video src="https://imgu.falnsakura.top/PicGo/2026/10/508b8d7db21629df3e2b858bc429aee2.mp4" poster="https://imgu.falnsakura.top/PicGo/2026/10/8e23c19b1d7665fd0059a69760d82941.webp" ratio="1280 / 720" width="85%" autoplay="true" muted="true" loop="true" title="丽江古城酒吧街夜间灯光视频二" >}}
+{{< video src="https://imgu.falnsakura.top/PicGo/2026/10/7d30ed2a6d654231ddd12837f39849e7.mp4" poster="https://imgu.falnsakura.top/PicGo/2026/10/15b9f8b3bb950257b11c854b38429ac2.webp" ratio="1280 / 720" width="85%" autoplay="true" muted="true" loop="true" title="丽江古城酒吧街夜景氛围视频三" >}}
 
 下来走一会就到木府了,进去要买票,我打了个卡就润了。
 
@@ -138,7 +138,7 @@ image: https://imgu.falnsakura.top/PicGo/2026/05/36fb4669b642b8b7c887e7aae9de67f
 清晨的古城非常安静,氛围极好。喝完咖啡,我再次爬上观景台,眺望白天的古城。
 
 {{< image src="https://imgu.falnsakura.top/PicGo/2026/05/2dcc3688fff150113d14a167802ccd91.png" width="85%" alt="白天从观景台俯瞰丽江古城" >}}
-{{< video src="/media/videos/050a78734347aca5a216afb590166422.mp4" poster="/media/videos/050a78734347aca5a216afb590166422.webp" ratio="1280 / 720" width="85%" autoplay="true" muted="true" loop="true" title="白天从观景台俯瞰丽江古城视频" >}}
+{{< video src="https://imgu.falnsakura.top/PicGo/2026/10/7c382211f231ced64d4d47f810e2df1a.mp4" poster="https://imgu.falnsakura.top/PicGo/2026/10/043f38b76f99106c90fb022d4082adc0.webp" ratio="1280 / 720" width="85%" autoplay="true" muted="true" loop="true" title="白天从观景台俯瞰丽江古城视频" >}}
 
 下午和我的队友碰面,都是年轻人哈哈,还有个高三生~~(高三竟然还能出来玩)~~,然后出发去哈巴村。
 
@@ -205,7 +205,7 @@ image: https://imgu.falnsakura.top/PicGo/2026/05/36fb4669b642b8b7c887e7aae9de67f
 还好可以烤火。
 
 {{< image src="https://imgu.falnsakura.top/PicGo/2026/05/f5153b662f1566ce9feae903e7d4df4d.png" width="85%" alt="哈巴雪山4000米营地雨雪天气和帐篷" >}}
-{{< video src="/media/videos/fa175149f67618e32be752bf24fe9d0f.mp4" poster="/media/videos/fa175149f67618e32be752bf24fe9d0f.webp" ratio="720 / 1280" width="85%" autoplay="true" muted="true" loop="true" title="哈巴雪山4000米营地雨雪天气视频" >}}
+{{< video src="https://imgu.falnsakura.top/PicGo/2026/10/cd70af78ef57745c8f35acfd133a4a4e.mp4" poster="https://imgu.falnsakura.top/PicGo/2026/10/ccf55dba4739bd84edde515ae5c5de88.webp" ratio="720 / 1280" width="85%" autoplay="true" muted="true" loop="true" title="哈巴雪山4000米营地雨雪天气视频" >}}
 
 我说我跑过马拉松,~~向导开玩笑说我只能到4900,哈哈,我也没有嚣张啊,最后其实连4900都没到~~。
 
@@ -238,7 +238,7 @@ image: https://imgu.falnsakura.top/PicGo/2026/05/36fb4669b642b8b7c887e7aae9de67f
 
 但是到了4500铁皮房,现实给了我当头一棒。我们停下来到铁皮房休息,发现没有向导想开路了,都不想上去。开路很费体能,如果有一个向导开,其他人就都跟过去,也不主动去前面开路,所以都不上去开路。
 
-{{< video src="/media/videos/133f6107a74659af3aa45f44e82494a2.mp4" poster="/media/videos/133f6107a74659af3aa45f44e82494a2.webp" ratio="720 / 1280" width="85%" autoplay="true" muted="true" loop="true" title="4500米铁皮房附近风雪中的冲顶路段视频" >}}
+{{< video src="https://imgu.falnsakura.top/PicGo/2026/10/2e52de7ec7ce4c893f729c438a35220a.mp4" poster="https://imgu.falnsakura.top/PicGo/2026/10/5309b6f9e4d1c03d93114f22f63dc557.webp" ratio="720 / 1280" width="85%" autoplay="true" muted="true" loop="true" title="4500米铁皮房附近风雪中的冲顶路段视频" >}}
 
 而且越往上雪越厚,向导也觉得危险。
 
@@ -253,11 +253,11 @@ image: https://imgu.falnsakura.top/PicGo/2026/05/36fb4669b642b8b7c887e7aae9de67f
 
 大雪纷飞。
 
-{{< video src="/media/videos/24005eb79d297fb0eab70db74874943b.mp4" poster="/media/videos/24005eb79d297fb0eab70db74874943b.webp" ratio="720 / 1280" width="85%" autoplay="true" muted="true" loop="true" title="哈巴雪山下撤途中大雪纷飞视频" >}}
+{{< video src="https://imgu.falnsakura.top/PicGo/2026/10/57c99236dff357878ca187a7fc8620be.mp4" poster="https://imgu.falnsakura.top/PicGo/2026/10/ce5842bbfffa656e14b044670aaeae71.webp" ratio="720 / 1280" width="85%" autoplay="true" muted="true" loop="true" title="哈巴雪山下撤途中大雪纷飞视频" >}}
 
 超级厚的雪。
 
-{{< video src="/media/videos/5b3bb053c503c351914acbb615b16654.mp4" poster="/media/videos/5b3bb053c503c351914acbb615b16654.webp" ratio="720 / 1280" width="85%" autoplay="true" muted="true" loop="true" title="哈巴雪山下撤途中深厚积雪视频" >}}
+{{< video src="https://imgu.falnsakura.top/PicGo/2026/10/80be5b735be21ba57dd249c0d434b14e.mp4" poster="https://imgu.falnsakura.top/PicGo/2026/10/1f228e26fa0c056413c46a382b391390.webp" ratio="720 / 1280" width="85%" autoplay="true" muted="true" loop="true" title="哈巴雪山下撤途中深厚积雪视频" >}}
 
 昨天这里还是绿绿的,今天下去就变成银色了。
 

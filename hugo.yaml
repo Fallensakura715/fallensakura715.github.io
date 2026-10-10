@@ -221,7 +221,7 @@ params:
         default: auto
 
     imageProcessing:
-        # Generate WebP for new images. Existing static WebP images are always reused.
+        # Generate WebP for new images. Existing WebP image-host URLs are always reused.
         # false: use newly added image URLs as-is (compress before uploading with PicGo).
         enabled: false
         external:
