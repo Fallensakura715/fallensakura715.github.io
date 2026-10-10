@@ -1,4 +1,4 @@
-name: Build Hugo and publish main
+name: Build and deploy Hugo
 
 on:
   push:
@@ -65,6 +65,12 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      - name: Upload GitHub Pages site
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/hugo'
+        uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+        with:
+          path: public/
+
   publish:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/hugo'
     needs: build
@@ -100,3 +106,19 @@ jobs:
           fi
           git commit -m "Deploy Hugo from ${SOURCE_SHA}"
           git push origin HEAD:main
+
+  pages:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/hugo'
+    needs: [build, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
