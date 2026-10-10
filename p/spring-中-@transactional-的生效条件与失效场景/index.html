@@ -1,0 +1,550 @@
+<!doctype html><html lang=en-US dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content='某天订单系统出现了一个数据不一致问题：用户支付成功了，但订单状态没更新，优惠券却已经被核销。排查后发现，开发同学在 Service 中写了一个内部方法调用， @Transactional 悄无声息地失效了。\n这类问题在实际开发中屡见不鲜。要彻底理解 @Transactional 为何失效，我们必须先搞清楚它是如何生效的。\n@Transactional 的原理 声明式事务 @Transactional 的本质是 AOP 代理 + 事务拦截器。理解这一点是分析所有生效/失效场景的基础。\n当我们在方法上标注 @Transactional 时，Spring 并不会对我们的代码做任何修改。它的魔法在于 代理模式。\nSpring 在启动时会扫描所有带有 @Transactional 注解的 Bean，然后为这些 Bean 创建一个代理对象。当外部调用这个 Bean 的方法时，实际上调用的是代理对象，而不是原始对象。代理对象会在调用真实方法前后插入事务管理的逻辑。\n没有代理时的调用链：\n1 调用方 → 目标对象.方法() 有代理时的调用链：\n1 调用方 → 代理对象.方法() → 开启事务 → 目标对象.方法() → 提交/回滚事务 这就是为什么 @Transactional 被称为"声明式事务"——你只需要声明（标注注解），Spring 帮你实现事务管理。但这也意味着， 如果调用绕过了代理对象，事务就不会生效。\n代理实现的方式 Spring 支持两种代理方式：\nJDK 动态代理：基于接口实现。如果你的 Bean 实现了接口，Spring 默认使用这种方式。代理对象和目标对象实现同一个接口，调用时通过接口方法进入代理逻辑。\nCGLIB 代理：基于继承实现。如果你的 Bean 没有实现接口，Spring 会使用 CGLIB 生成一个目标类的子类作为代理。子类覆写了父类的方法，在覆写的方法中加入事务逻辑。\nCGLIB 基于继承的特性决定了 final 方法无法被代理，子类无法覆写父类的 final 方法。\n'><title>Spring 中 @Transactional 的生效条件与失效场景</title><link rel=canonical href=https://falnsakura.top/p/spring-%E4%B8%AD-@transactional-%E7%9A%84%E7%94%9F%E6%95%88%E6%9D%A1%E4%BB%B6%E4%B8%8E%E5%A4%B1%E6%95%88%E5%9C%BA%E6%99%AF/><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><link rel=preload as=style href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap"><link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap"><link rel=stylesheet href=/scss/style.min.804e61c3c2f186ad0227c8a9aa4e25c1ba0dee139c541fdd01a94bc34ade8d07.css><meta property='og:title' content="Spring 中 @Transactional 的生效条件与失效场景"><meta property='og:description' content='某天订单系统出现了一个数据不一致问题：用户支付成功了，但订单状态没更新，优惠券却已经被核销。排查后发现，开发同学在 Service 中写了一个内部方法调用， @Transactional 悄无声息地失效了。\n这类问题在实际开发中屡见不鲜。要彻底理解 @Transactional 为何失效，我们必须先搞清楚它是如何生效的。\n@Transactional 的原理 声明式事务 @Transactional 的本质是 AOP 代理 + 事务拦截器。理解这一点是分析所有生效/失效场景的基础。\n当我们在方法上标注 @Transactional 时，Spring 并不会对我们的代码做任何修改。它的魔法在于 代理模式。\nSpring 在启动时会扫描所有带有 @Transactional 注解的 Bean，然后为这些 Bean 创建一个代理对象。当外部调用这个 Bean 的方法时，实际上调用的是代理对象，而不是原始对象。代理对象会在调用真实方法前后插入事务管理的逻辑。\n没有代理时的调用链：\n1 调用方 → 目标对象.方法() 有代理时的调用链：\n1 调用方 → 代理对象.方法() → 开启事务 → 目标对象.方法() → 提交/回滚事务 这就是为什么 @Transactional 被称为"声明式事务"——你只需要声明（标注注解），Spring 帮你实现事务管理。但这也意味着， 如果调用绕过了代理对象，事务就不会生效。\n代理实现的方式 Spring 支持两种代理方式：\nJDK 动态代理：基于接口实现。如果你的 Bean 实现了接口，Spring 默认使用这种方式。代理对象和目标对象实现同一个接口，调用时通过接口方法进入代理逻辑。\nCGLIB 代理：基于继承实现。如果你的 Bean 没有实现接口，Spring 会使用 CGLIB 生成一个目标类的子类作为代理。子类覆写了父类的方法，在覆写的方法中加入事务逻辑。\nCGLIB 基于继承的特性决定了 final 方法无法被代理，子类无法覆写父类的 final 方法。\n'><meta property='og:url' content='https://falnsakura.top/p/spring-%E4%B8%AD-@transactional-%E7%9A%84%E7%94%9F%E6%95%88%E6%9D%A1%E4%BB%B6%E4%B8%8E%E5%A4%B1%E6%95%88%E5%9C%BA%E6%99%AF/'><meta property='og:site_name' content="Fallensakura715's Blog"><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='后端'><meta property='article:tag' content='Java'><meta property='article:tag' content='Spring'><meta property='article:tag' content='源码分析'><meta property='article:tag' content='数据库'><meta property='article:published_time' content='2026-02-02T11:08:38+00:00'><meta property='article:modified_time' content='2026-02-02T11:08:38+00:00'><meta property='og:image' content='https://imgu.falnsakura.top/PicGo/2026/02/cb5562ff312d615525beffefc4f6f560.png'><meta name=twitter:title content="Spring 中 @Transactional 的生效条件与失效场景"><meta name=twitter:description content='某天订单系统出现了一个数据不一致问题：用户支付成功了，但订单状态没更新，优惠券却已经被核销。排查后发现，开发同学在 Service 中写了一个内部方法调用， @Transactional 悄无声息地失效了。\n这类问题在实际开发中屡见不鲜。要彻底理解 @Transactional 为何失效，我们必须先搞清楚它是如何生效的。\n@Transactional 的原理 声明式事务 @Transactional 的本质是 AOP 代理 + 事务拦截器。理解这一点是分析所有生效/失效场景的基础。\n当我们在方法上标注 @Transactional 时，Spring 并不会对我们的代码做任何修改。它的魔法在于 代理模式。\nSpring 在启动时会扫描所有带有 @Transactional 注解的 Bean，然后为这些 Bean 创建一个代理对象。当外部调用这个 Bean 的方法时，实际上调用的是代理对象，而不是原始对象。代理对象会在调用真实方法前后插入事务管理的逻辑。\n没有代理时的调用链：\n1 调用方 → 目标对象.方法() 有代理时的调用链：\n1 调用方 → 代理对象.方法() → 开启事务 → 目标对象.方法() → 提交/回滚事务 这就是为什么 @Transactional 被称为"声明式事务"——你只需要声明（标注注解），Spring 帮你实现事务管理。但这也意味着， 如果调用绕过了代理对象，事务就不会生效。\n代理实现的方式 Spring 支持两种代理方式：\nJDK 动态代理：基于接口实现。如果你的 Bean 实现了接口，Spring 默认使用这种方式。代理对象和目标对象实现同一个接口，调用时通过接口方法进入代理逻辑。\nCGLIB 代理：基于继承实现。如果你的 Bean 没有实现接口，Spring 会使用 CGLIB 生成一个目标类的子类作为代理。子类覆写了父类的方法，在覆写的方法中加入事务逻辑。\nCGLIB 基于继承的特性决定了 final 方法无法被代理，子类无法覆写父类的 final 方法。\n'><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content='https://imgu.falnsakura.top/PicGo/2026/02/cb5562ff312d615525beffefc4f6f560.png'><link rel="shortcut icon" href=https://imgu.falnsakura.top/PicGo/2025/11/7fecef2b68d35d8fb24e800c61742f1d.png><script async src="https://www.googletagmanager.com/gtag/js?id=G-WTFDF5BG52"></script><script>var doNotTrack=!1,dnt=navigator.doNotTrack||window.doNotTrack||navigator.msDoNotTrack,doNotTrack=dnt=="1"||dnt=="yes";if(!doNotTrack){window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-WTFDF5BG52")}</script></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label="Toggle Menu">
+<span class=hamburger-box><span class=hamburger-inner></span></span></button><header><figure class=site-avatar><a href=/><img src=https://imgu.falnsakura.top/PicGo/2025/11/7fecef2b68d35d8fb24e800c61742f1d.png width=460 height=460 class=site-logo loading=lazy alt=Avatar></a></figure><div class=site-meta><h1 class=site-name><a href=/>Fallensakura715's Blog</a></h1><h2 class=site-description>Miracle, a word outside my days.</h2></div></header><ol class=menu-social><li><a href=https://github.com/Fallensakura715 title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li><li><a href=https://twitter.com title=Twitter rel=me><svg class="icon icon-tabler icon-tabler-brand-twitter" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M22 4.01c-1 .49-1.98.689-3 .99-1.121-1.265-2.783-1.335-4.38-.737S11.977 6.323 12 8v1c-3.245.083-6.135-1.395-8-4 0 0-4.182 7.433 4 11-1.872 1.247-3.739 2.088-6 2 3.308 1.803 6.913 2.423 10.034 1.517 3.58-1.04 6.522-3.723 7.651-7.742a13.84 13.84.0 00.497-3.753C20.18 7.773 21.692 5.25 22 4.009z"/></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
+<span>Home</span></a></li><li><a href=/archives/><svg class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><rect x="3" y="4" width="18" height="4" rx="2"/><path d="M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+<span>Archives</span></a></li><li><a href=/music/><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><path d="M9 9l12-2"/><ellipse cx="6" cy="18" rx="3" ry="3"/><ellipse cx="18" cy="16" rx="3" ry="3"/></svg>
+<span>Music</span></a></li><li><a href=/about/><svg class="icon icon-tabler icon-tabler-user" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg>
+<span>About</span></a></li><li><a href=/links/><svg class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M10 14a3.5 3.5.0 005 0l4-4a3.5 3.5.0 00-5-5l-.5.5"/><path d="M14 10a3.5 3.5.0 00-5 0l-4 4a3.5 3.5.0 005 5l.5-.5"/></svg>
+<span>Links</span></a></li><li class=menu-bottom-section><ol class=menu><li id=i18n-switch><svg class="icon icon-tabler icon-tabler-language" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 5h7"/><path d="M9 3v2c0 4.418-2.239 8-5 8"/><path d="M5 9c-.003 2.144 2.952 3.908 6.7 4"/><path d="M12 20l4-9 4 9"/><path d="M19.1 18h-6.2"/></svg>
+<select name=language title=language onchange="window.location.href=this.selectedOptions[0].value"><option value=/p/spring-%E4%B8%AD-@transactional-%E7%9A%84%E7%94%9F%E6%95%88%E6%9D%A1%E4%BB%B6%E4%B8%8E%E5%A4%B1%E6%95%88%E5%9C%BA%E6%99%AF/ selected>English</option><option value=/zh/>简体中文</option></select></li><li id=dark-mode-toggle><svg class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="8" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<svg class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="16" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<span>Dark Mode</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">Table of contents</h2><div class=widget--toc><nav class=toc-nav id=TableOfContents><ol><li><a href=#transactional-的原理>@Transactional 的原理</a><ol><li><a href=#声明式事务>声明式事务</a></li><li><a href=#代理实现的方式>代理实现的方式</a></li></ol></li><li><a href=#事务是如何被拦截和管理的>事务是如何被拦截和管理的</a><ol><li><a href=#事务拦截器>事务拦截器</a></li><li><a href=#关键源码>关键源码</a></li><li><a href=#事务回滚规则>事务回滚规则</a></li></ol></li><li><a href=#事务生效五个条件>事务生效五个条件</a><ol><li><a href=#bean-必须由-spring-容器管理>Bean 必须由 Spring 容器管理</a></li><li><a href=#方法必须是-public>方法必须是 public</a></li><li><a href=#必须通过代理对象调用>必须通过代理对象调用</a></li><li><a href=#事务管理器必须正确配置>事务管理器必须正确配置</a></li><li><a href=#底层存储引擎必须支持事务>底层存储引擎必须支持事务</a></li></ol></li><li><a href=#事务失效八个场景>事务失效八个场景</a><ol><li><a href=#同类中的内部方法调用>同类中的内部方法调用</a></li><li><a href=#方法不是-public>方法不是 public</a></li><li><a href=#异常被-catch-后没有重新抛出>异常被 catch 后没有重新抛出</a></li><li><a href=#抛出了受检异常但没有配置-rollbackfor>抛出了受检异常但没有配置 rollbackFor</a></li><li><a href=#类没有被-spring-管理>类没有被 Spring 管理</a></li><li><a href=#多线程调用>多线程调用</a></li><li><a href=#使用了-final-或-static>使用了 final 或 static</a></li><li><a href=#底层存储引擎不支持事务>底层存储引擎不支持事务</a></li></ol></li><li><a href=#传播行为的困惑>传播行为的困惑</a></li><li><a href=#排查事务问题>排查事务问题</a><ol><li><a href=#开启事务调试日志>开启事务调试日志</a></li><li><a href=#代码中检查事务状态>代码中检查事务状态</a></li><li><a href=#检查代理类型>检查代理类型</a></li></ol></li><li><a href=#总结>总结</a></li></ol></nav></div></section><section class="widget widget--visitor-stats"><div class=widget-icon><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></div><h2 class="widget-title section-title">Site statistics</h2><div class=visitor-stats-card><dl class=visitor-stats-list aria-live=polite aria-atomic=true><div><dt>Page views</dt><dd data-vercount-value=site_pv>—</dd></div><div><dt>Unique visitors</dt><dd data-vercount-value=site_uv>—</dd></div></dl><div class=visitor-map role=group aria-label="Visitor map"><div class=visitor-map-content data-visitor-map-id=CVu5j5K2JpwCU0bcJOQR7H4TzI5TCm2bTSWc622Dfh0><a class=visitor-map-placeholder href=https://mapmyvisitors.com/web/1c0w9 target=_blank rel="noopener noreferrer"><span>View visitor map</span></a></div><a class=visitor-map-details href=https://mapmyvisitors.com/web/1c0w9 target=_blank rel="noopener noreferrer">View visitor map</a></div></div></section></aside><main class="main full-width"><article class="has-image main-article"><header class=article-header><div class=article-image><a href=/p/spring-%E4%B8%AD-@transactional-%E7%9A%84%E7%94%9F%E6%95%88%E6%9D%A1%E4%BB%B6%E4%B8%8E%E5%A4%B1%E6%95%88%E5%9C%BA%E6%99%AF/><img alt="Featured image of post Spring 中 @Transactional 的生效条件与失效场景" height=684 loading=lazy sizes="(max-width: 767px) calc(100vw - 30px), (max-width: 1023px) 700px, (max-width: 1279px) 950px, 1232px" src=https://imgu.falnsakura.top/PicGo/2026/02/cb5562ff312d615525beffefc4f6f560.png srcset="/cb5562ff312d615525beffefc4f6f560_3111696787414123402_hu_cbfddca127affd40.png 800w, https://imgu.falnsakura.top/PicGo/2026/02/cb5562ff312d615525beffefc4f6f560.png 1298w" width=1298></a></div><div class=article-details><header class=article-category><a href=/categories/%E6%8A%80%E6%9C%AF/ style=background-color:#beefd9;color:#0f3d29>技术</a></header><div class=article-title-wrapper><h2 class=article-title><a href=/p/spring-%E4%B8%AD-@transactional-%E7%9A%84%E7%94%9F%E6%95%88%E6%9D%A1%E4%BB%B6%E4%B8%8E%E5%A4%B1%E6%95%88%E5%9C%BA%E6%99%AF/>Spring 中 @Transactional 的生效条件与失效场景</a></h2></div><footer class=article-meta><div class=inline-meta><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
+<time class=article-time--published datetime=2026-02-02T11:08:38Z>Feb 02, 2026</time>
+<svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+<time class=article-time--reading>6 minutes read
+</time><span class=article-pageviews aria-live=polite aria-atomic=true><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+Views <span id=vercount_value_page_pv>—</span></span></div></footer></div></header><aside class=article-toc><details><summary><div class=article-toc-title><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-right"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6-6 6"/></svg>
+<span>Table of contents</span></div></summary><nav class=toc-nav><ol><li><a href=#transactional-的原理>@Transactional 的原理</a><ol><li><a href=#声明式事务>声明式事务</a></li><li><a href=#代理实现的方式>代理实现的方式</a></li></ol></li><li><a href=#事务是如何被拦截和管理的>事务是如何被拦截和管理的</a><ol><li><a href=#事务拦截器>事务拦截器</a></li><li><a href=#关键源码>关键源码</a></li><li><a href=#事务回滚规则>事务回滚规则</a></li></ol></li><li><a href=#事务生效五个条件>事务生效五个条件</a><ol><li><a href=#bean-必须由-spring-容器管理>Bean 必须由 Spring 容器管理</a></li><li><a href=#方法必须是-public>方法必须是 public</a></li><li><a href=#必须通过代理对象调用>必须通过代理对象调用</a></li><li><a href=#事务管理器必须正确配置>事务管理器必须正确配置</a></li><li><a href=#底层存储引擎必须支持事务>底层存储引擎必须支持事务</a></li></ol></li><li><a href=#事务失效八个场景>事务失效八个场景</a><ol><li><a href=#同类中的内部方法调用>同类中的内部方法调用</a></li><li><a href=#方法不是-public>方法不是 public</a></li><li><a href=#异常被-catch-后没有重新抛出>异常被 catch 后没有重新抛出</a></li><li><a href=#抛出了受检异常但没有配置-rollbackfor>抛出了受检异常但没有配置 rollbackFor</a></li><li><a href=#类没有被-spring-管理>类没有被 Spring 管理</a></li><li><a href=#多线程调用>多线程调用</a></li><li><a href=#使用了-final-或-static>使用了 final 或 static</a></li><li><a href=#底层存储引擎不支持事务>底层存储引擎不支持事务</a></li></ol></li><li><a href=#传播行为的困惑>传播行为的困惑</a></li><li><a href=#排查事务问题>排查事务问题</a><ol><li><a href=#开启事务调试日志>开启事务调试日志</a></li><li><a href=#代码中检查事务状态>代码中检查事务状态</a></li><li><a href=#检查代理类型>检查代理类型</a></li></ol></li><li><a href=#总结>总结</a></li></ol></nav></details></aside><section class=article-content><p>某天订单系统出现了一个数据不一致问题：用户支付成功了，但订单状态没更新，优惠券却已经被核销。排查后发现，开发同学在 Service 中写了一个内部方法调用， <code>@Transactional</code> 悄无声息地失效了。</p><p>这类问题在实际开发中屡见不鲜。要彻底理解 <code>@Transactional</code> 为何失效，我们必须先搞清楚它是如何生效的。</p><h2 id=transactional-的原理><a href=#transactional-%e7%9a%84%e5%8e%9f%e7%90%86 class=header-anchor></a>@Transactional 的原理</h2><h3 id=声明式事务><a href=#%e5%a3%b0%e6%98%8e%e5%bc%8f%e4%ba%8b%e5%8a%a1 class=header-anchor></a>声明式事务</h3><p><code>@Transactional</code> 的本质是 <strong>AOP 代理 + 事务拦截器</strong>。理解这一点是分析所有生效/失效场景的基础。</p><p>当我们在方法上标注 <code>@Transactional</code> 时，Spring 并不会对我们的代码做任何修改。它的魔法在于 <strong>代理模式</strong>。</p><p>Spring 在启动时会扫描所有带有 <code>@Transactional</code> 注解的 Bean，然后为这些 Bean 创建一个代理对象。当外部调用这个 Bean 的方法时，实际上调用的是代理对象，而不是原始对象。代理对象会在调用真实方法前后插入事务管理的逻辑。</p><p><strong>没有代理时的调用链：</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>调用方 → 目标对象.方法()
+</span></span></code></pre></td></tr></table></div></div><p><strong>有代理时的调用链：</strong></p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-fallback data-lang=fallback><span class=line><span class=cl>调用方 → 代理对象.方法() → 开启事务 → 目标对象.方法() → 提交/回滚事务
+</span></span></code></pre></td></tr></table></div></div><p>这就是为什么 <code>@Transactional</code> 被称为"声明式事务"——你只需要声明（标注注解），Spring 帮你实现事务管理。但这也意味着， <strong>如果调用绕过了代理对象，事务就不会生效</strong>。</p><h3 id=代理实现的方式><a href=#%e4%bb%a3%e7%90%86%e5%ae%9e%e7%8e%b0%e7%9a%84%e6%96%b9%e5%bc%8f class=header-anchor></a>代理实现的方式</h3><p>Spring 支持两种代理方式：</p><p><strong>JDK 动态代理</strong>：基于接口实现。如果你的 Bean 实现了接口，Spring 默认使用这种方式。代理对象和目标对象实现同一个接口，调用时通过接口方法进入代理逻辑。</p><p><strong>CGLIB 代理</strong>：基于继承实现。如果你的 Bean 没有实现接口，Spring 会使用 CGLIB 生成一个目标类的子类作为代理。子类覆写了父类的方法，在覆写的方法中加入事务逻辑。</p><p>CGLIB 基于继承的特性决定了 <code>final</code> 方法无法被代理，子类无法覆写父类的 <code>final</code> 方法。</p><h2 id=事务是如何被拦截和管理的><a href=#%e4%ba%8b%e5%8a%a1%e6%98%af%e5%a6%82%e4%bd%95%e8%a2%ab%e6%8b%a6%e6%88%aa%e5%92%8c%e7%ae%a1%e7%90%86%e7%9a%84 class=header-anchor></a>事务是如何被拦截和管理的</h2><h3 id=事务拦截器><a href=#%e4%ba%8b%e5%8a%a1%e6%8b%a6%e6%88%aa%e5%99%a8 class=header-anchor></a>事务拦截器</h3><p>Spring 事务的核心拦截器是 <code>TransactionInterceptor</code>，它实现了 <code>MethodInterceptor</code> 接口。每当代理对象的方法被调用时，都会先经过这个拦截器。</p><p>拦截器的工作流程如下：</p><ol><li><strong>解析事务属性</strong>：读取方法上的 <code>@Transactional</code> 注解，获取传播行为、隔离级别、超时时间、回滚规则等配置。</li><li><strong>获取事务管理器</strong>：根据配置找到对应的 <code>PlatformTransactionManager</code>（如 <code>DataSourceTransactionManager</code>）。</li><li><strong>开启事务</strong>：调用事务管理器的 <code>getTransaction()</code> 方法，根据传播行为决定是开启新事务还是加入已有事务。</li><li><strong>执行业务方法</strong>：调用目标对象的真实方法。</li><li><strong>处理执行结果</strong>：如果方法正常返回，提交事务；如果抛出异常，根据回滚规则决定回滚还是提交。</li></ol><h3 id=关键源码><a href=#%e5%85%b3%e9%94%ae%e6%ba%90%e7%a0%81 class=header-anchor></a>关键源码</h3><p>事务的核心处理逻辑在 <code>TransactionAspectSupport</code> 类的 <code>invokeWithinTransaction</code> 方法中：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>protected</span><span class=w> </span><span class=n>Object</span><span class=w> </span><span class=nf>invokeWithinTransaction</span><span class=p>(</span><span class=n>Method</span><span class=w> </span><span class=n>method</span><span class=p>,</span><span class=w> </span><span class=n>Class</span><span class=o>&lt;?&gt;</span><span class=w> </span><span class=n>targetClass</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=kd>final</span><span class=w> </span><span class=n>InvocationCallback</span><span class=w> </span><span class=n>invocation</span><span class=p>)</span><span class=w> </span><span class=kd>throws</span><span class=w> </span><span class=n>Throwable</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 第一步：获取事务属性</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 这里会解析 @Transactional 注解的所有配置项</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>TransactionAttributeSource</span><span class=w> </span><span class=n>tas</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>getTransactionAttributeSource</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>final</span><span class=w> </span><span class=n>TransactionAttribute</span><span class=w> </span><span class=n>txAttr</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>tas</span><span class=p>.</span><span class=na>getTransactionAttribute</span><span class=p>(</span><span class=n>method</span><span class=p>,</span><span class=w> </span><span class=n>targetClass</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 第二步：获取事务管理器</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>final</span><span class=w> </span><span class=n>TransactionManager</span><span class=w> </span><span class=n>tm</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>determineTransactionManager</span><span class=p>(</span><span class=n>txAttr</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 第三步：创建事务（如果需要）</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>TransactionInfo</span><span class=w> </span><span class=n>txInfo</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>createTransactionIfNecessary</span><span class=p>(</span><span class=n>ptm</span><span class=p>,</span><span class=w> </span><span class=n>txAttr</span><span class=p>,</span><span class=w> </span><span class=n>methodId</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>Object</span><span class=w> </span><span class=n>retVal</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 第四步：执行真实的业务方法</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>retVal</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>invocation</span><span class=p>.</span><span class=na>proceedWithInvocation</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>catch</span><span class=w> </span><span class=p>(</span><span class=n>Throwable</span><span class=w> </span><span class=n>ex</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 第五步：异常处理——决定回滚还是提交</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>completeTransactionAfterThrowing</span><span class=p>(</span><span class=n>txInfo</span><span class=p>,</span><span class=w> </span><span class=n>ex</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>throw</span><span class=w> </span><span class=n>ex</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 第六步：正常返回时提交事务</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>commitTransactionAfterReturning</span><span class=p>(</span><span class=n>txInfo</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>return</span><span class=w> </span><span class=n>retVal</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=事务回滚规则><a href=#%e4%ba%8b%e5%8a%a1%e5%9b%9e%e6%bb%9a%e8%a7%84%e5%88%99 class=header-anchor></a>事务回滚规则</h3><p>在 <code>completeTransactionAfterThrowing</code> 方法中：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>protected</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>completeTransactionAfterThrowing</span><span class=p>(</span><span class=n>TransactionInfo</span><span class=w> </span><span class=n>txInfo</span><span class=p>,</span><span class=w> </span><span class=n>Throwable</span><span class=w> </span><span class=n>ex</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>txInfo</span><span class=p>.</span><span class=na>transactionAttribute</span><span class=p>.</span><span class=na>rollbackOn</span><span class=p>(</span><span class=n>ex</span><span class=p>))</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 匹配回滚规则，执行回滚</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>txInfo</span><span class=p>.</span><span class=na>getTransactionManager</span><span class=p>().</span><span class=na>rollback</span><span class=p>(</span><span class=n>txInfo</span><span class=p>.</span><span class=na>getTransactionStatus</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>else</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 不匹配回滚规则，仍然提交！</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>txInfo</span><span class=p>.</span><span class=na>getTransactionManager</span><span class=p>().</span><span class=na>commit</span><span class=p>(</span><span class=n>txInfo</span><span class=p>.</span><span class=na>getTransactionStatus</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>默认的回滚规则定义在 <code>DefaultTransactionAttribute</code> 中：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>boolean</span><span class=w> </span><span class=nf>rollbackOn</span><span class=p>(</span><span class=n>Throwable</span><span class=w> </span><span class=n>ex</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>return</span><span class=w> </span><span class=p>(</span><span class=n>ex</span><span class=w> </span><span class=k>instanceof</span><span class=w> </span><span class=n>RuntimeException</span><span class=w> </span><span class=o>||</span><span class=w> </span><span class=n>ex</span><span class=w> </span><span class=k>instanceof</span><span class=w> </span><span class=n>Error</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>这意味着： <strong>默认情况下，只有 <code>RuntimeException</code> 及其子类，以及 <code>Error</code>，才会触发回滚。</strong> 如果抛出的是 <code>IOException</code>、 <code>SQLException</code> 这类受检异常，事务会正常提交。</p><h2 id=事务生效五个条件><a href=#%e4%ba%8b%e5%8a%a1%e7%94%9f%e6%95%88%e4%ba%94%e4%b8%aa%e6%9d%a1%e4%bb%b6 class=header-anchor></a>事务生效五个条件</h2><p><code>@Transactional</code> 生效必须同时满足的条件：</p><h3 id=bean-必须由-spring-容器管理><a href=#bean-%e5%bf%85%e9%a1%bb%e7%94%b1-spring-%e5%ae%b9%e5%99%a8%e7%ae%a1%e7%90%86 class=header-anchor></a>Bean 必须由 Spring 容器管理</h3><p>这是最基本的前提。只有被 Spring 管理的 Bean，Spring 才有机会为其创建代理。如果你手动 <code>new</code> 了一个对象，或者类上没有 <code>@Service</code>、 <code>@Component</code> 等注解，那这个对象就是一个普通的 Java 对象，与 Spring 无关，自然也不会有事务能力。</p><h3 id=方法必须是-public><a href=#%e6%96%b9%e6%b3%95%e5%bf%85%e9%a1%bb%e6%98%af-public class=header-anchor></a>方法必须是 public</h3><p>Spring 在解析 <code>@Transactional</code> 注解时，会显式检查方法的访问修饰符。如果方法不是 <code>public</code>，注解会被直接忽略。</p><p>这个限制的原因与代理机制有关。JDK 动态代理只能代理接口方法（接口方法默认都是 public）；CGLIB 虽然理论上可以代理非 public 方法，但 Spring 为了保持一致性和明确性，统一要求必须是 public 方法。</p><h3 id=必须通过代理对象调用><a href=#%e5%bf%85%e9%a1%bb%e9%80%9a%e8%bf%87%e4%bb%a3%e7%90%86%e5%af%b9%e8%b1%a1%e8%b0%83%e7%94%a8 class=header-anchor></a>必须通过代理对象调用</h3><p>这是最容易踩坑的地方。即使前两个条件都满足了，如果调用方式绕过了代理对象，事务依然不会生效。典型的场景就是同一个类中的方法互相调用（后面会详细讲解）。</p><h3 id=事务管理器必须正确配置><a href=#%e4%ba%8b%e5%8a%a1%e7%ae%a1%e7%90%86%e5%99%a8%e5%bf%85%e9%a1%bb%e6%ad%a3%e7%a1%ae%e9%85%8d%e7%bd%ae class=header-anchor></a>事务管理器必须正确配置</h3><p>Spring 需要一个 <code>PlatformTransactionManager</code> 来实际管理事务。对于 JDBC 操作，通常是 <code>DataSourceTransactionManager</code>；对于 JPA，是 <code>JpaTransactionManager</code>。如果你使用 Spring Boot，自动配置通常会帮你搞定这一切。但在某些复杂场景（如多数据源），你需要手动指定使用哪个事务管理器。</p><h3 id=底层存储引擎必须支持事务><a href=#%e5%ba%95%e5%b1%82%e5%ad%98%e5%82%a8%e5%bc%95%e6%93%8e%e5%bf%85%e9%a1%bb%e6%94%af%e6%8c%81%e4%ba%8b%e5%8a%a1 class=header-anchor></a>底层存储引擎必须支持事务</h3><p>事务是数据库层面的概念。如果你使用的存储引擎不支持事务（如 MySQL 的 MyISAM 引擎），那么无论 Spring 层面怎么配置，事务都不会生效。MySQL 请务必使用 InnoDB 引擎。</p><h2 id=事务失效八个场景><a href=#%e4%ba%8b%e5%8a%a1%e5%a4%b1%e6%95%88%e5%85%ab%e4%b8%aa%e5%9c%ba%e6%99%af class=header-anchor></a>事务失效八个场景</h2><h3 id=同类中的内部方法调用><a href=#%e5%90%8c%e7%b1%bb%e4%b8%ad%e7%9a%84%e5%86%85%e9%83%a8%e6%96%b9%e6%b3%95%e8%b0%83%e7%94%a8 class=header-anchor></a>同类中的内部方法调用</h3><p><strong>这是最常见、最隐蔽的失效场景。</strong>
+假设有这样一段代码：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Service</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>OrderService</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>createOrder</span><span class=p>(</span><span class=n>Order</span><span class=w> </span><span class=n>order</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 保存订单</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>saveOrder</span><span class=p>(</span><span class=n>order</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 绑定优惠活动</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>bindPromotion</span><span class=p>(</span><span class=n>order</span><span class=p>);</span><span class=w>  </span><span class=c1>// 直接调用本类方法</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nd>@Transactional</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>bindPromotion</span><span class=p>(</span><span class=n>Order</span><span class=w> </span><span class=n>order</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>promotionDao</span><span class=p>.</span><span class=na>bindOrder</span><span class=p>(</span><span class=n>order</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 如果这里抛异常，期望回滚</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>开发者的预期是 <code>bindPromotion</code> 方法有独立的事务，如果失败应该回滚。但实际上，这个事务根本不会生效。</p><p><strong>原因分析</strong>：当外部调用 <code>orderService.createOrder()</code> 时，确实是通过代理对象进入的。但在 <code>createOrder</code> 方法内部调用 <code>bindPromotion</code> 时，此时的 <code>this</code> 指向的是目标对象（原始的 OrderService 实例），而不是代理对象。调用直接发生在目标对象内部，完全绕过了代理层的事务拦截器。</p><p><strong>解决方案</strong>：</p><p>方案一：注入自身的代理对象</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Service</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>OrderService</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nd>@Autowired</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>private</span><span class=w> </span><span class=n>OrderService</span><span class=w> </span><span class=n>self</span><span class=p>;</span><span class=w>  </span><span class=c1>// 注入自己，拿到的是代理对象</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>createOrder</span><span class=p>(</span><span class=n>Order</span><span class=w> </span><span class=n>order</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>saveOrder</span><span class=p>(</span><span class=n>order</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>self</span><span class=p>.</span><span class=na>bindPromotion</span><span class=p>(</span><span class=n>order</span><span class=p>);</span><span class=w>  </span><span class=c1>// 通过代理对象调用</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>方案二：使用 <code>AopContext</code> 获取当前代理</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span><span class=lnt>9
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Service</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>OrderService</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>createOrder</span><span class=p>(</span><span class=n>Order</span><span class=w> </span><span class=n>order</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>saveOrder</span><span class=p>(</span><span class=n>order</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 需要配置 @EnableAspectJAutoProxy(exposeProxy = true)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>((</span><span class=n>OrderService</span><span class=p>)</span><span class=w> </span><span class=n>AopContext</span><span class=p>.</span><span class=na>currentProxy</span><span class=p>()).</span><span class=na>bindPromotion</span><span class=p>(</span><span class=n>order</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>方案三：将方法拆分到不同的类中
+这是最推荐的做法，既解决了自调用问题，也符合单一职责原则。</p><h3 id=方法不是-public><a href=#%e6%96%b9%e6%b3%95%e4%b8%8d%e6%98%af-public class=header-anchor></a>方法不是 public</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Service</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>UserService</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nd>@Transactional</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>void</span><span class=w> </span><span class=nf>updateUser</span><span class=p>(</span><span class=n>User</span><span class=w> </span><span class=n>user</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>  </span><span class=c1>// 包级别访问权限</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>userDao</span><span class=p>.</span><span class=na>update</span><span class=p>(</span><span class=n>user</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nd>@Transactional</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>protected</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>deleteUser</span><span class=p>(</span><span class=n>Long</span><span class=w> </span><span class=n>id</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>  </span><span class=c1>// protected</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>userDao</span><span class=p>.</span><span class=na>delete</span><span class=p>(</span><span class=n>id</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nd>@Transactional</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>private</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>innerUpdate</span><span class=p>(</span><span class=n>User</span><span class=w> </span><span class=n>user</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>  </span><span class=c1>// private</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>userDao</span><span class=p>.</span><span class=na>update</span><span class=p>(</span><span class=n>user</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>以上三种写法， <code>@Transactional</code> 都不会生效。Spring 在 <code>AbstractFallbackTransactionAttributeSource</code> 类中有明确的检查：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>allowPublicMethodsOnly</span><span class=p>()</span><span class=w> </span><span class=o>&amp;&amp;</span><span class=w> </span><span class=o>!</span><span class=n>Modifier</span><span class=p>.</span><span class=na>isPublic</span><span class=p>(</span><span class=n>method</span><span class=p>.</span><span class=na>getModifiers</span><span class=p>()))</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>return</span><span class=w> </span><span class=kc>null</span><span class=p>;</span><span class=w>  </span><span class=c1>// 返回null表示没有事务属性</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>这个限制的设计初衷是：非 public 方法通常是内部实现细节，不应该暴露给外部调用。如果你需要事务，说明这个方法应该是一个对外的业务入口，理应是 public 的。</p><h3 id=异常被-catch-后没有重新抛出><a href=#%e5%bc%82%e5%b8%b8%e8%a2%ab-catch-%e5%90%8e%e6%b2%a1%e6%9c%89%e9%87%8d%e6%96%b0%e6%8a%9b%e5%87%ba class=header-anchor></a>异常被 catch 后没有重新抛出</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Service</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>PaymentService</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nd>@Transactional</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>processPayment</span><span class=p>(</span><span class=n>Payment</span><span class=w> </span><span class=n>payment</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>paymentDao</span><span class=p>.</span><span class=na>save</span><span class=p>(</span><span class=n>payment</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>thirdPartyApi</span><span class=p>.</span><span class=na>charge</span><span class=p>(</span><span class=n>payment</span><span class=p>);</span><span class=w>  </span><span class=c1>// 可能抛异常</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w> </span><span class=k>catch</span><span class=w> </span><span class=p>(</span><span class=n>Exception</span><span class=w> </span><span class=n>e</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>log</span><span class=p>.</span><span class=na>error</span><span class=p>(</span><span class=s>&#34;支付失败&#34;</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=c1>// 异常被吞掉了，方法正常返回</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>这段代码的问题在于： <code>catch</code> 块捕获了异常后，只是打印了日志，没有重新抛出。从事务拦截器的视角来看，方法正常执行完毕并返回了，没有任何异常抛出到方法边界之外。根据前面分析的源码逻辑，正常返回会触发 <code>commitTransactionAfterReturning</code>，事务被提交了。</p><p><strong>解决方案</strong>：</p><p>方法一：重新抛出异常</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Transactional</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>processPayment</span><span class=p>(</span><span class=n>Payment</span><span class=w> </span><span class=n>payment</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>paymentDao</span><span class=p>.</span><span class=na>save</span><span class=p>(</span><span class=n>payment</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>thirdPartyApi</span><span class=p>.</span><span class=na>charge</span><span class=p>(</span><span class=n>payment</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w> </span><span class=k>catch</span><span class=w> </span><span class=p>(</span><span class=n>Exception</span><span class=w> </span><span class=n>e</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>log</span><span class=p>.</span><span class=na>error</span><span class=p>(</span><span class=s>&#34;支付失败&#34;</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>throw</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>RuntimeException</span><span class=p>(</span><span class=s>&#34;支付处理失败&#34;</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>);</span><span class=w>  </span><span class=c1>// 重新抛出</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>方法二：手动标记事务回滚</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Transactional</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>processPayment</span><span class=p>(</span><span class=n>Payment</span><span class=w> </span><span class=n>payment</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>paymentDao</span><span class=p>.</span><span class=na>save</span><span class=p>(</span><span class=n>payment</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>thirdPartyApi</span><span class=p>.</span><span class=na>charge</span><span class=p>(</span><span class=n>payment</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w> </span><span class=k>catch</span><span class=w> </span><span class=p>(</span><span class=n>Exception</span><span class=w> </span><span class=n>e</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>log</span><span class=p>.</span><span class=na>error</span><span class=p>(</span><span class=s>&#34;支付失败&#34;</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 手动标记当前事务需要回滚</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>TransactionAspectSupport</span><span class=p>.</span><span class=na>currentTransactionStatus</span><span class=p>().</span><span class=na>setRollbackOnly</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=抛出了受检异常但没有配置-rollbackfor><a href=#%e6%8a%9b%e5%87%ba%e4%ba%86%e5%8f%97%e6%a3%80%e5%bc%82%e5%b8%b8%e4%bd%86%e6%b2%a1%e6%9c%89%e9%85%8d%e7%bd%ae-rollbackfor class=header-anchor></a>抛出了受检异常但没有配置 rollbackFor</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Service</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>FileService</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nd>@Transactional</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>uploadFile</span><span class=p>(</span><span class=n>MultipartFile</span><span class=w> </span><span class=n>file</span><span class=p>)</span><span class=w> </span><span class=kd>throws</span><span class=w> </span><span class=n>IOException</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>fileDao</span><span class=p>.</span><span class=na>saveMetadata</span><span class=p>(</span><span class=n>file</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>if</span><span class=w> </span><span class=p>(</span><span class=n>file</span><span class=p>.</span><span class=na>getSize</span><span class=p>()</span><span class=w> </span><span class=o>&gt;</span><span class=w> </span><span class=n>MAX_SIZE</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=k>throw</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>IOException</span><span class=p>(</span><span class=s>&#34;文件过大&#34;</span><span class=p>);</span><span class=w>  </span><span class=c1>// 受检异常</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>storageService</span><span class=p>.</span><span class=na>store</span><span class=p>(</span><span class=n>file</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>这个方法抛出了 <code>IOException</code>，这是一个受检异常（Checked Exception），不属于 <code>RuntimeException</code> 的子类。根据默认的回滚规则，这个异常不会触发回滚，事务会正常提交。</p><p><strong>正确写法</strong>：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Transactional</span><span class=p>(</span><span class=n>rollbackFor</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Exception</span><span class=p>.</span><span class=na>class</span><span class=p>)</span><span class=w>  </span><span class=c1>// 指定所有异常都回滚</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>uploadFile</span><span class=p>(</span><span class=n>MultipartFile</span><span class=w> </span><span class=n>file</span><span class=p>)</span><span class=w> </span><span class=kd>throws</span><span class=w> </span><span class=n>IOException</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// ...</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>或者更精确地指定：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Transactional</span><span class=p>(</span><span class=n>rollbackFor</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=p>{</span><span class=n>IOException</span><span class=p>.</span><span class=na>class</span><span class=p>,</span><span class=w> </span><span class=n>BusinessException</span><span class=p>.</span><span class=na>class</span><span class=p>})</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>uploadFile</span><span class=p>(</span><span class=n>MultipartFile</span><span class=w> </span><span class=n>file</span><span class=p>)</span><span class=w> </span><span class=kd>throws</span><span class=w> </span><span class=n>IOException</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// ...</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>阿里巴巴 Java 开发手册建议， <code>@Transactional</code> 注解应该始终指定 <code>rollbackFor = Exception.class</code>，避免受检异常导致的意外提交。</p><h3 id=类没有被-spring-管理><a href=#%e7%b1%bb%e6%b2%a1%e6%9c%89%e8%a2%ab-spring-%e7%ae%a1%e7%90%86 class=header-anchor></a>类没有被 Spring 管理</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=c1>// 注意：没有 @Service、@Component 等注解</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>StandaloneService</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nd>@Transactional</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>doSomething</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 这个类不是 Spring Bean，注解无效</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>使用时如果手动创建实例：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=n>StandaloneService</span><span class=w> </span><span class=n>service</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>StandaloneService</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=n>service</span><span class=p>.</span><span class=na>doSomething</span><span class=p>();</span><span class=w>  </span><span class=c1>// 没有事务</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>这种情况下，Spring 根本不知道这个类的存在，自然也不会为它创建代理。 <code>@Transactional</code> 注解就是一个普通的注解标记，没有任何运行时效果。</p><h3 id=多线程调用><a href=#%e5%a4%9a%e7%ba%bf%e7%a8%8b%e8%b0%83%e7%94%a8 class=header-anchor></a>多线程调用</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Service</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>BatchService</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nd>@Transactional</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>batchProcess</span><span class=p>(</span><span class=n>List</span><span class=o>&lt;</span><span class=n>Order</span><span class=o>&gt;</span><span class=w> </span><span class=n>orders</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 使用并行流处理</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>orders</span><span class=p>.</span><span class=na>parallelStream</span><span class=p>().</span><span class=na>forEach</span><span class=p>(</span><span class=n>order</span><span class=w> </span><span class=o>-&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>orderDao</span><span class=p>.</span><span class=na>save</span><span class=p>(</span><span class=n>order</span><span class=p>);</span><span class=w>  </span><span class=c1>// 每个线程独立，不在主事务中</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>});</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 或者手动创建线程</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>new</span><span class=w> </span><span class=n>Thread</span><span class=p>(()</span><span class=w> </span><span class=o>-&gt;</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>orderDao</span><span class=p>.</span><span class=na>save</span><span class=p>(</span><span class=n>someOrder</span><span class=p>);</span><span class=w>  </span><span class=c1>// 新线程，没有事务</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}).</span><span class=na>start</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>Spring 的事务信息是存储在 <code>ThreadLocal</code> 中的。 <code>ThreadLocal</code> 的特性是线程隔离：每个线程有自己独立的变量副本。当你创建新线程或使用并行流时，新线程无法访问主线程的事务上下文，因此它们的数据库操作是在没有事务的情况下执行的。</p><p>主线程中的事务回滚，不会影响子线程已经提交的操作；子线程的操作失败，也不会导致主线程事务回滚。数据一致性完全无法保证。</p><p><strong>解决方案</strong>：避免在事务方法中使用多线程，或者为每个线程单独管理事务（但这样就不是同一个事务了）。</p><h3 id=使用了-final-或-static><a href=#%e4%bd%bf%e7%94%a8%e4%ba%86-final-%e6%88%96-static class=header-anchor></a>使用了 final 或 static</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Service</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>FinalService</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nd>@Transactional</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kd>final</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>finalMethod</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// CGLIB 无法覆写 final 方法</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nd>@Transactional</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kd>static</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>staticMethod</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// static 方法不属于实例，无法被代理</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>对于 <code>final</code> 方法：CGLIB 通过继承目标类来创建代理，但子类无法覆写父类的 <code>final</code> 方法，因此事务拦截逻辑无法插入。</p><p>对于 <code>static</code> 方法：静态方法属于类而不是实例，代理对象拦截的是实例方法调用。你调用 <code>FinalService.staticMethod()</code> 时，根本不经过任何代理对象。</p><h3 id=底层存储引擎不支持事务><a href=#%e5%ba%95%e5%b1%82%e5%ad%98%e5%82%a8%e5%bc%95%e6%93%8e%e4%b8%8d%e6%94%af%e6%8c%81%e4%ba%8b%e5%8a%a1 class=header-anchor></a>底层存储引擎不支持事务</h3><p>现在 MySQL 默认是 InnoDB 存储引擎，但是如果你的 MySQL 表使用了 MyISAM 引擎：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-sql data-lang=sql><span class=line><span class=cl><span class=k>CREATE</span><span class=w> </span><span class=k>TABLE</span><span class=w> </span><span class=n>orders</span><span class=w> </span><span class=p>(</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>id</span><span class=w> </span><span class=nb>INT</span><span class=w> </span><span class=k>PRIMARY</span><span class=w> </span><span class=k>KEY</span><span class=p>,</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>amount</span><span class=w> </span><span class=nb>DECIMAL</span><span class=p>(</span><span class=mi>10</span><span class=p>,</span><span class=mi>2</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>)</span><span class=w> </span><span class=n>ENGINE</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>MyISAM</span><span class=p>;</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>MyISAM 引擎不支持事务。无论你的 Java 代码如何配置，数据库层面根本不会开启事务。Spring 的事务管理器以为自己在管理事务，实际上数据库根本不配合。</p><h2 id=传播行为的困惑><a href=#%e4%bc%a0%e6%92%ad%e8%a1%8c%e4%b8%ba%e7%9a%84%e5%9b%b0%e6%83%91 class=header-anchor></a>传播行为的困惑</h2><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Service</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>OuterService</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nd>@Autowired</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>private</span><span class=w> </span><span class=n>InnerService</span><span class=w> </span><span class=n>innerService</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nd>@Transactional</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>outerMethod</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>orderDao</span><span class=p>.</span><span class=na>createOrder</span><span class=p>(</span><span class=n>order</span><span class=p>);</span><span class=w>  </span><span class=c1>// 操作1</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>try</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>innerService</span><span class=p>.</span><span class=na>innerMethod</span><span class=p>();</span><span class=w>  </span><span class=c1>// 这个方法会抛异常</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w> </span><span class=k>catch</span><span class=w> </span><span class=p>(</span><span class=n>Exception</span><span class=w> </span><span class=n>e</span><span class=p>)</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>            </span><span class=n>log</span><span class=p>.</span><span class=na>error</span><span class=p>(</span><span class=s>&#34;内部方法执行失败，但我想继续&#34;</span><span class=p>,</span><span class=w> </span><span class=n>e</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=n>orderDao</span><span class=p>.</span><span class=na>updateOrderStatus</span><span class=p>(</span><span class=n>order</span><span class=p>);</span><span class=w>  </span><span class=c1>// 操作2，期望能执行</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=nd>@Service</span><span class=w>  
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kd>class</span> <span class=nc>InnerService</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nd>@Transactional</span><span class=w>  </span><span class=c1>// 默认 REQUIRED 传播行为</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>innerMethod</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=c1>// 做一些操作后抛出异常</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>        </span><span class=k>throw</span><span class=w> </span><span class=k>new</span><span class=w> </span><span class=n>RuntimeException</span><span class=p>(</span><span class=s>&#34;业务异常&#34;</span><span class=p>);</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=p>}</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>开发者的预期是： <code>innerMethod</code> 失败后，我在外层 catch 住异常，继续执行后续逻辑。但实际运行时，当执行到 <code>orderDao.updateOrderStatus</code> 时，会抛出 <code>UnexpectedRollbackException</code>，提示事务已被标记为回滚。</p><p><strong>原因分析</strong>：默认的传播行为是 <code>REQUIRED</code>，表示"如果当前存在事务，就加入该事务"。所以 <code>innerMethod</code> 和 <code>outerMethod</code> 实际上在同一个事务中。当 <code>innerMethod</code> 抛出 <code>RuntimeException</code> 时，事务被标记为 <code>rollback-only</code>（必须回滚）。即使你在外层 catch 住了异常，这个标记仍然存在。当 <code>outerMethod</code> 尝试正常返回时，事务管理器发现事务已被标记为必须回滚，于是抛出异常。</p><p><strong>解决方案</strong>：如果希望内层方法的失败不影响外层事务，可以使用 <code>REQUIRES_NEW</code> 传播行为：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Transactional</span><span class=p>(</span><span class=n>propagation</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>Propagation</span><span class=p>.</span><span class=na>REQUIRES_NEW</span><span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>innerMethod</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 独立的新事务，回滚不影响外层</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h2 id=排查事务问题><a href=#%e6%8e%92%e6%9f%a5%e4%ba%8b%e5%8a%a1%e9%97%ae%e9%a2%98 class=header-anchor></a>排查事务问题</h2><h3 id=开启事务调试日志><a href=#%e5%bc%80%e5%90%af%e4%ba%8b%e5%8a%a1%e8%b0%83%e8%af%95%e6%97%a5%e5%bf%97 class=header-anchor></a>开启事务调试日志</h3><p>在 <code>application.yml</code> 中配置：</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=line><span class=cl><span class=nt>logging</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>  </span><span class=nt>level</span><span class=p>:</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>org.springframework.transaction.interceptor</span><span class=p>:</span><span class=w> </span><span class=l>TRACE</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=nt>org.springframework.jdbc.datasource.DataSourceTransactionManager</span><span class=p>:</span><span class=w> </span><span class=l>DEBUG</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=代码中检查事务状态><a href=#%e4%bb%a3%e7%a0%81%e4%b8%ad%e6%a3%80%e6%9f%a5%e4%ba%8b%e5%8a%a1%e7%8a%b6%e6%80%81 class=header-anchor></a>代码中检查事务状态</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Transactional</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>someMethod</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=kt>boolean</span><span class=w> </span><span class=n>isActive</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>TransactionSynchronizationManager</span><span class=p>.</span><span class=na>isActualTransactionActive</span><span class=p>();</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>log</span><span class=p>.</span><span class=na>info</span><span class=p>(</span><span class=s>&#34;当前是否在事务中: {}&#34;</span><span class=p>,</span><span class=w> </span><span class=n>isActive</span><span class=p>);</span><span class=w>  </span><span class=c1>// 应该输出 true</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><h3 id=检查代理类型><a href=#%e6%a3%80%e6%9f%a5%e4%bb%a3%e7%90%86%e7%b1%bb%e5%9e%8b class=header-anchor></a>检查代理类型</h3><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=nd>@Autowired</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>private</span><span class=w> </span><span class=n>OrderService</span><span class=w> </span><span class=n>orderService</span><span class=p>;</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>
+</span></span></span><span class=line><span class=cl><span class=kd>public</span><span class=w> </span><span class=kt>void</span><span class=w> </span><span class=nf>checkProxy</span><span class=p>()</span><span class=w> </span><span class=p>{</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=n>System</span><span class=p>.</span><span class=na>out</span><span class=p>.</span><span class=na>println</span><span class=p>(</span><span class=n>orderService</span><span class=p>.</span><span class=na>getClass</span><span class=p>().</span><span class=na>getName</span><span class=p>());</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// 如果是代理，会输出类似：</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w>    </span><span class=c1>// com.example.service.OrderService$$EnhancerBySpringCGLIB$$xxxxx</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=p>}</span><span class=w>
+</span></span></span></code></pre></td></tr></table></div></div><p>如果输出的是原始类名，说明没有被代理。</p><h2 id=总结><a href=#%e6%80%bb%e7%bb%93 class=header-anchor></a>总结</h2><p><strong>核心原则：</strong></p><ol><li><strong>理解代理机制</strong>： <code>@Transactional</code> 的生效依赖于 AOP 代理，任何绕过代理的调用都会导致失效。</li><li><strong>让异常飞出去</strong>：事务的回滚依赖于异常抛出。如果你 catch 了异常，要么重新抛出，要么手动标记回滚。</li><li><strong>明确指定 rollbackFor</strong> ：不要依赖默认的回滚规则，建议始终配置 <code>rollbackFor = Exception.class</code>。</li></ol><p><code>@Transactional</code> 的本质是通过代理在方法执行前后插入事务管理代码。理解了这一点，所有失效场景都能用"是否经过代理"和"异常是否抛出"这两个问题来分析。</p></section><footer class="article-meta article-footer"><section class=article-tags><a href=/tags/%E5%90%8E%E7%AB%AF/>后端</a>
+<a href=/tags/java/>Java</a>
+<a href=/tags/spring/>Spring</a>
+<a href=/tags/%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/>源码分析</a>
+<a href=/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/>数据库</a></section><section class="article-copyright inline-meta"><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
+<span>Licensed under CC BY-NC-SA 4.0</span></section></footer><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css integrity=sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js integrity=sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8 crossorigin=anonymous defer></script><script src=https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous defer></script><script>window.addEventListener("DOMContentLoaded",()=>{const e=[".main-article",".widget--toc"];e.forEach(e=>{const t=document.querySelector(e);t&&renderMathInElement(t,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1},{left:"\\(",right:"\\)",display:!1},{left:"\\[",right:"\\]",display:!0}],ignoredClasses:["gist"]})})})</script></article><aside><h2 class=section-title>Related content</h2><div class=subsection-list><div class=article-list--tile><article class=has-image><a href=/p/%E5%B9%B6%E5%8F%91%E4%B8%8B%E5%BA%93%E5%AD%98%E9%A2%84%E5%8D%A0%E4%B8%8E%E6%89%A3%E5%87%8F%E7%9A%84%E9%97%AE%E9%A2%98/><div class=article-image><img alt="Featured image of post 并发下库存预占与扣减的问题" height=150 loading=lazy src=/54ad7b4da404bb8dca94e669358385b7_5975937412822072651_hu_e6d1c3251519a909.png srcset="/54ad7b4da404bb8dca94e669358385b7_5975937412822072651_hu_e6d1c3251519a909.png 1x, /54ad7b4da404bb8dca94e669358385b7_5975937412822072651_hu_e1ee9d64c7d9c812.png 2x" width=250></div><div class=article-details style="background:linear-gradient(0deg,#1fa0df80 0%,#fbfcfcC0 100%)"><h2 class=article-title>并发下库存预占与扣减的问题</h2></div></a></article><article class=has-image><a href=/p/spring-%E6%98%AF%E5%A6%82%E4%BD%95%E5%88%A9%E7%94%A8%E4%B8%89%E7%BA%A7%E7%BC%93%E5%AD%98%E8%A7%A3%E5%86%B3%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E7%9A%84/><div class=article-image><img alt="Featured image of post Spring 是如何利用“三级缓存”解决循环依赖的?" height=150 loading=lazy src=/cf96e4befa1bd89c67dbf703b400b52e_15067526691137159199_hu_c8154c6797f553aa.png srcset="/cf96e4befa1bd89c67dbf703b400b52e_15067526691137159199_hu_c8154c6797f553aa.png 1x, /cf96e4befa1bd89c67dbf703b400b52e_15067526691137159199_hu_3d49058222c68735.png 2x" width=250></div><div class=article-details style="background:linear-gradient(0deg,#26262680 0%,#f9f9f8C0 100%)"><h2 class=article-title>Spring 是如何利用“三级缓存”解决循环依赖的?</h2></div></a></article><article class=has-image><a href=/p/%E6%8B%92%E7%BB%9D-if-else%E5%9F%BA%E4%BA%8E-ddd-%E4%B8%8E%E7%8A%B6%E6%80%81%E6%9C%BA%E7%9A%84%E8%AE%A2%E5%8D%95%E4%B8%9A%E5%8A%A1/><div class=article-image><img alt="Featured image of post 拒绝 if-else：基于 DDD 与状态机的订单业务" height=150 loading=lazy src=/bddd9e2749162567a5d66da46a2de654_16025490681496879075_hu_d431c63d1097df9f.png srcset="/bddd9e2749162567a5d66da46a2de654_16025490681496879075_hu_d431c63d1097df9f.png 1x, /bddd9e2749162567a5d66da46a2de654_16025490681496879075_hu_c5d4880121a6f392.png 2x" width=250></div><div class=article-details style="background:linear-gradient(0deg,#f6f6f880 0%,#f6f6f8C0 100%)"><h2 class=article-title>拒绝 if-else：基于 DDD 与状态机的订单业务</h2></div></a></article><article class=has-image><a href=/p/httpcookie%E4%B8%8Eoauth%E8%AE%A4%E8%AF%81api%E9%80%86%E5%90%91%E4%B8%8E%E5%90%8E%E7%AB%AF%E6%95%B0%E6%8D%AE%E7%9A%84%E6%8A%93%E5%8F%96/><div class=article-image><img alt="Featured image of post HTTP、Cookie与OAuth认证：API逆向与后端数据的抓取" height=150 loading=lazy src=/57a508b2b0fe9e71a9c817bddd91eed3_6170292456420252387_hu_1fd59b4ce08b20f0.png srcset="/57a508b2b0fe9e71a9c817bddd91eed3_6170292456420252387_hu_1fd59b4ce08b20f0.png 1x, /57a508b2b0fe9e71a9c817bddd91eed3_6170292456420252387_hu_30cb6eb455a5c21.png 2x" width=250></div><div class=article-details style="background:linear-gradient(0deg,#42403e80 0%,#fdfdfdC0 100%)"><h2 class=article-title>HTTP、Cookie与OAuth认证：API逆向与后端数据的抓取</h2></div></a></article><article class=has-image><a href=/p/claude-code-%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95/><div class=article-image><img alt="Featured image of post Claude Code 使用方法" height=150 loading=lazy src=/dd464067755603ecde25fa3b6d49fb94_2439777352210866521_hu_a787954237fe714c.png srcset="/dd464067755603ecde25fa3b6d49fb94_2439777352210866521_hu_a787954237fe714c.png 1x, /dd464067755603ecde25fa3b6d49fb94_2439777352210866521_hu_442a20f5629792f4.png 2x" width=250></div><div class=article-details style="background:linear-gradient(0deg,#d3745980 0%,#1c1816C0 100%)"><h2 class=article-title>Claude Code 使用方法</h2></div></a></article></div></div></aside><script src=https://giscus.app/client.js data-repo=Fallensakura715/fallensakura715.github.io data-repo-id=R_kgDOQbLWgA data-category=Announcements data-category-id=DIC_kwDOQbLWgM4CzGz5 data-mapping=pathname data-strict=0 data-reactions-enabled=1 data-emit-metadata=0 data-input-position=bottom data-theme=light data-lang=en data-loading=lazy crossorigin=anonymous async></script><script>function setGiscusTheme(e){let t=document.querySelector("iframe.giscus-frame");t&&t.contentWindow.postMessage({giscus:{setConfig:{theme:e}}},"https://giscus.app")}(function(){addEventListener("message",t=>{if(event.origin!=="https://giscus.app")return;e()}),window.addEventListener("onColorSchemeChange",e);function e(){setGiscusTheme(document.documentElement.dataset.scheme==="light"?"light":"dark")}})()</script><footer class=site-footer><section class=copyright>&copy;
+2025 -
+2026 fallensakura715</section><section class=site-visitor-stats aria-live=polite aria-atomic=true><span>Page views <span id=vercount_value_site_pv>—</span></span>
+<span>Unique visitors <span id=vercount_value_site_uv>—</span></span></section><section class=powerby>Built with <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a><br>Theme <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=4.0.3>Stack</a></b> designed by <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a></section></footer><script type=module>
+    import gallery from '\/ts\/gallery.js';
+
+    const articleContent = document.querySelector('.article-content');
+    const shouldLoad = articleContent && (articleContent.querySelectorAll('figure').length > 0 || articleContent.querySelectorAll('img.gallery-image').length > 0);
+    
+    if (shouldLoad) {
+        gallery(articleContent);
+
+        const PhotoSwipeLightbox = (await import("https:\/\/cdn.jsdelivr.net\/npm\/photoswipe@5.4.4\/dist\/photoswipe-lightbox.esm.min.js")).default;
+        const styleHref = "https:\/\/cdn.jsdelivr.net\/npm\/photoswipe@5.4.4\/dist\/photoswipe.css";
+
+        const styleTag = document.createElement('link');
+        styleTag.rel = 'stylesheet';
+        styleTag.href = styleHref;
+        document.head.appendChild(styleTag);
+
+        const lightbox = new PhotoSwipeLightbox({
+            gallerySelector: '.article-content',
+            childSelector: 'figure a.image-link',
+            pswpModule: () => import("https:\/\/cdn.jsdelivr.net\/npm\/photoswipe@5.4.4\/dist\/photoswipe.esm.min.js")
+        });
+        lightbox.init();
+    }
+</script></main></div><script type=text/javascript src=/ts/main.1ff1e5fdc4e178ed422e50aa407526dc552f26342d729343fded19416194382c.js defer></script><script src=/js/visitor-stats.min.d2d63628ab3b0616c7a1509869ff0de226ab36be6672b60fafeb115d39492a82.js integrity="sha256-0tY2KKs7BhbHoVCYaf8N4iarNr5mcrYPr+sRXTlJKoI=" crossorigin=anonymous defer data-site-host=falnsakura.top data-vercount-src=https://events.vercount.one/js></script></body></html>
