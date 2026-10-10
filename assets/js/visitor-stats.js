@@ -14,7 +14,7 @@
     }
 
     // Keep local previews and alternate hosts out of the production counters.
-    if (window.location.host !== config.dataset.siteHost) return;
+    if (!config.dataset.siteHosts.split(",").includes(window.location.host)) return;
 
     if (config.dataset.vercountSrc) {
         const counter = document.createElement("script");
