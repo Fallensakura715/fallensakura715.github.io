@@ -46,6 +46,13 @@ permalinks:
     page: /:slug/
 
 params:
+    visitorStats:
+        enabled: true
+        scriptUrl: https://events.vercount.one/js
+    visitorMap:
+        enabled: true
+        id: CVu5j5K2JpwCU0bcJOQR7H4TzI5TCm2bTSWc622Dfh0
+        statsUrl: https://mapmyvisitors.com/web/1c0w9
     music:
         playlistId: "12682020018"
         api: https://api.injahow.cn/meting/
@@ -185,9 +192,7 @@ params:
     widgets:
         homepage:
             - type: search
-            - type: archives
-              params:
-                  limit: 5
+            - type: visitor-stats
             - type: categories
               params:
                   limit: 10
@@ -196,6 +201,7 @@ params:
                   limit: 10
         page:
             - type: toc
+            - type: visitor-stats
 
     opengraph:
         twitter:

@@ -1,0 +1,35 @@
+{{- $username := .Get "username" -}}
+{{- if not $username -}}
+    {{- errorf "GitHub contributions shortcode in %s is missing username" .Page.File.Path -}}
+{{- end -}}
+{{- $profileURL := printf "https://github.com/%s" $username -}}
+{{- $labels := dict
+    "loading" (T "githubContributions.loading")
+    "error" (T "githubContributions.error")
+    "dayZero" (T "githubContributions.dayZero")
+    "dayOne" (T "githubContributions.dayOne")
+    "dayOther" (T "githubContributions.dayOther")
+    "summary" (T "githubContributions.summary")
+-}}
+<section class="github-contributions" data-github-contributions data-username="{{ $username }}" data-locale="{{ .Page.Site.Language.Locale }}" data-labels="{{ $labels | jsonify }}">
+    <div class="github-contributions__header">
+        <h2>{{ T "githubContributions.title" }}</h2>
+        <a href="{{ $profileURL }}" target="_blank" rel="noopener noreferrer">@{{ $username }}</a>
+    </div>
+    <div class="github-contributions__panel">
+        <p class="github-contributions__status" data-github-status role="status">{{ T "githubContributions.loading" }}</p>
+        <button class="github-contributions__retry" data-github-retry type="button" hidden>{{ T "githubContributions.retry" }}</button>
+        <div class="github-contributions__scroll" role="region" aria-label="{{ T "githubContributions.title" }}" tabindex="0" hidden>
+            <div class="github-contributions__calendar" data-github-calendar></div>
+        </div>
+        <div class="github-contributions__footer" data-github-footer hidden>
+            <span data-github-summary></span>
+            <div class="github-contributions__legend" aria-label="{{ T "githubContributions.legend" }}">
+                <span>{{ T "githubContributions.less" }}</span>
+                {{ range seq 0 4 }}<span class="github-contributions__day" data-level="{{ . }}" aria-hidden="true"></span>{{ end }}
+                <span>{{ T "githubContributions.more" }}</span>
+            </div>
+        </div>
+        <noscript>{{ T "githubContributions.noScript" }}</noscript>
+    </div>
+</section>

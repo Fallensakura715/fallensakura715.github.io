@@ -1,0 +1,12 @@
+{{- with .Context.Site.Params.visitorMap -}}
+    {{- if and .enabled .id -}}
+<div class="visitor-map" role="group" aria-label="{{ T "visitorMap.title" }}">
+    <div class="visitor-map-content" data-visitor-map-id="{{ .id }}">
+        <a class="visitor-map-placeholder" href="{{ .statsUrl }}" target="_blank" rel="noopener noreferrer">
+            <span>{{ T "visitorMap.viewDetails" }}</span>
+        </a>
+    </div>
+    <a class="visitor-map-details" href="{{ .statsUrl }}" target="_blank" rel="noopener noreferrer">{{ T "visitorMap.viewDetails" }}</a>
+</div>
+    {{- end -}}
+{{- end -}}

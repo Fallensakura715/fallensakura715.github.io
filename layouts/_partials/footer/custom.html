@@ -1,0 +1,6 @@
+{{- if or .Site.Params.visitorStats.enabled .Site.Params.visitorMap.enabled -}}
+    {{- $script := resources.Get "js/visitor-stats.js" | minify | fingerprint -}}
+    <script src="{{ $script.RelPermalink }}" integrity="{{ $script.Data.Integrity }}" crossorigin="anonymous" defer
+        data-site-host="{{ (urls.Parse .Site.BaseURL).Host }}"
+        {{- if .Site.Params.visitorStats.enabled }} data-vercount-src="{{ .Site.Params.visitorStats.scriptUrl }}"{{ end }}></script>
+{{- end -}}

@@ -1,0 +1,19 @@
+{{- if .Context.Site.Params.visitorStats.enabled -}}
+<section class="widget widget--visitor-stats">
+    <div class="widget-icon">{{ partial "helper/icon" "eye" }}</div>
+    <h2 class="widget-title section-title">{{ T "visitorStats.title" }}</h2>
+    <div class="visitor-stats-card">
+        <dl class="visitor-stats-list" aria-live="polite" aria-atomic="true">
+            <div>
+                <dt>{{ T "visitorStats.siteViews" }}</dt>
+                <dd data-vercount-value="site_pv">—</dd>
+            </div>
+            <div>
+                <dt>{{ T "visitorStats.siteVisitors" }}</dt>
+                <dd data-vercount-value="site_uv">—</dd>
+            </div>
+        </dl>
+        {{ partial "widget/visitor-map.html" . }}
+    </div>
+</section>
+{{- end -}}

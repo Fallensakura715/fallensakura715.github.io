@@ -1,0 +1,23 @@
+[visitorStats]
+    title = "访问统计"
+    siteViews = "访问次数"
+    siteVisitors = "访问人数"
+    pageViews = "阅读次数"
+
+[visitorMap]
+    title = "访客地图"
+    viewDetails = "查看访客分布"
+
+[githubContributions]
+    title = "GitHub 贡献"
+    loading = "正在加载贡献记录…"
+    error = "贡献记录加载失败，可重试或打开 GitHub 主页查看。"
+    retry = "重试"
+    dayZero = "{date}：没有贡献"
+    dayOne = "{date}：1 次贡献"
+    dayOther = "{date}：{count} 次贡献"
+    summary = "最近一年共有 {count} 次贡献"
+    less = "少"
+    more = "多"
+    legend = "贡献数量由少到多"
+    noScript = "开启 JavaScript 即可查看贡献图，也可以打开上方的 GitHub 主页。"

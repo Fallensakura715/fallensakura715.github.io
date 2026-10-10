@@ -1,0 +1,223 @@
+.github-contributions {
+    // GitHub's contribution grid uses 11px days, 4px spacing, 2px corners and a 0.5px border.
+    --contribution-size: 11px;
+    --contribution-gap: 4px;
+    --contribution-border: #1f23280d;
+    --contribution-panel-border: #d1d9e0;
+    --contribution-scrollbar: #afb8c1;
+    --contribution-level-0: #eff2f5;
+    --contribution-level-1: #b6e3ff;
+    --contribution-level-2: #54aeff;
+    --contribution-level-3: #0969da;
+    --contribution-level-4: #0a3069;
+
+    &__header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: var(--spacing-sm) var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+
+        h2 {
+            border: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        a {
+            color: var(--card-text-color-secondary);
+            font-size: 1.4rem;
+        }
+    }
+
+    &__panel {
+        border: 1px solid var(--contribution-panel-border);
+        border-radius: 6px;
+        padding: var(--spacing-md);
+    }
+
+    &__status {
+        margin: 0;
+        font-size: 1.4rem;
+        color: var(--card-text-color-secondary);
+    }
+
+    &__retry {
+        margin-top: var(--spacing-sm);
+        padding: 6px 12px;
+        border: 1px solid var(--contribution-panel-border);
+        border-radius: 6px;
+        background: var(--card-background);
+        color: var(--card-text-color-main);
+        cursor: pointer;
+    }
+
+    &__scroll {
+        overflow-x: auto;
+        padding: 4px 0 var(--spacing-sm);
+        scrollbar-width: thin;
+        scrollbar-color: var(--contribution-scrollbar) transparent;
+
+        @supports #{'selector(::-webkit-scrollbar)'} {
+            scrollbar-width: auto;
+            scrollbar-color: auto;
+
+            &::-webkit-scrollbar {
+                height: 4px;
+            }
+
+            &::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+            &::-webkit-scrollbar-thumb {
+                border-radius: 4px;
+                background: var(--contribution-scrollbar);
+            }
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 4px;
+        }
+
+    }
+
+    &__calendar {
+        display: grid;
+        width: max-content;
+        grid-template-columns: 30px max-content;
+        grid-template-rows: 16px auto;
+        gap: 5px;
+        font-size: 1rem;
+        line-height: 11px;
+        color: var(--card-text-color-secondary);
+    }
+
+    &__months,
+    &__days {
+        display: grid;
+        grid-template-columns: repeat(var(--contribution-weeks), var(--contribution-size));
+        column-gap: var(--contribution-gap);
+    }
+
+    &__months {
+        grid-column: 2;
+
+        span {
+            white-space: nowrap;
+        }
+    }
+
+    &__weekdays,
+    &__days {
+        grid-template-rows: repeat(7, var(--contribution-size));
+        row-gap: var(--contribution-gap);
+    }
+
+    &__weekdays {
+        display: grid;
+        grid-column: 1;
+        grid-row: 2;
+    }
+
+    &__days {
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    &__day {
+        display: block;
+        box-sizing: border-box;
+        width: var(--contribution-size);
+        height: var(--contribution-size);
+        padding: 0;
+        border: 0.5px solid var(--contribution-border);
+        border-radius: 2px;
+        appearance: none;
+        background: var(--contribution-level-0);
+
+        @for $level from 1 through 4 {
+            &[data-level="#{$level}"] {
+                background: var(--contribution-level-#{$level});
+            }
+        }
+    }
+
+    button#{&}__day {
+        cursor: pointer;
+
+        &:hover,
+        &:focus-visible {
+            outline: 2px solid #0969da;
+            outline-offset: -1px;
+        }
+    }
+
+    &__footer {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--spacing-sm);
+        padding-top: var(--spacing-sm);
+        color: var(--card-text-color-secondary);
+        font-size: 1.2rem;
+        line-height: 1.5;
+    }
+
+    &__legend {
+        display: flex;
+        align-items: center;
+        gap: var(--contribution-gap);
+        margin-left: auto;
+
+        > span:first-child {
+            margin-right: 3px;
+        }
+
+        > span:last-child {
+            margin-left: 3px;
+        }
+    }
+
+    [hidden] {
+        display: none;
+    }
+}
+
+[data-scheme="dark"] .github-contributions {
+    --contribution-border: #0104090d;
+    --contribution-panel-border: #3d444d;
+    --contribution-scrollbar: #6e7681;
+    --contribution-level-0: #151b23;
+    --contribution-level-1: #0c2d6b;
+    --contribution-level-2: #1158c7;
+    --contribution-level-3: #58a6ff;
+    --contribution-level-4: #cae8ff;
+
+    button.github-contributions__day:hover,
+    button.github-contributions__day:focus-visible {
+        outline-color: #58a6ff;
+    }
+}
+
+.github-contributions__tooltip {
+    position: fixed;
+    z-index: 10000;
+    box-sizing: border-box;
+    width: max-content;
+    max-width: calc(100vw - 16px);
+    border-radius: 4px;
+    padding: 4px 6px;
+    background: #25292e;
+    color: #fff;
+    font-size: 11px;
+    line-height: 1.25;
+    pointer-events: none;
+
+    &[hidden] {
+        display: none;
+    }
+}

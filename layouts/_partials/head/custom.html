@@ -4,3 +4,10 @@
     {{- $js := slice (resources.Get "vendor/aplayer/APlayer.min.js") (resources.Get "js/music-player.js") | resources.Concat "js/music-player.js" | minify | fingerprint -}}
     <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" crossorigin="anonymous" defer></script>
 {{- end -}}
+
+{{- if .HasShortcode "github-contributions" -}}
+    {{- $css := resources.Get "scss/github-contributions.scss" | toCSS | minify | fingerprint -}}
+    <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}" crossorigin="anonymous">
+    {{- $js := resources.Get "js/github-contributions.js" | minify | fingerprint -}}
+    <script src="{{ $js.RelPermalink }}" integrity="{{ $js.Data.Integrity }}" crossorigin="anonymous" defer></script>
+{{- end -}}

@@ -1,0 +1,23 @@
+[visitorStats]
+    title = "Site statistics"
+    siteViews = "Page views"
+    siteVisitors = "Unique visitors"
+    pageViews = "Views"
+
+[visitorMap]
+    title = "Visitor map"
+    viewDetails = "View visitor map"
+
+[githubContributions]
+    title = "GitHub contributions"
+    loading = "Loading contributions…"
+    error = "Could not load contributions. Try again or view them on GitHub."
+    retry = "Retry"
+    dayZero = "{date}: No contributions"
+    dayOne = "{date}: 1 contribution"
+    dayOther = "{date}: {count} contributions"
+    summary = "{count} contributions in the last year"
+    less = "Less"
+    more = "More"
+    legend = "Contribution levels from less to more"
+    noScript = "Enable JavaScript to view the calendar, or open the GitHub profile above."
