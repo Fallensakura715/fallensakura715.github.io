@@ -179,7 +179,7 @@ params:
             mapping: pathname
             lightTheme: light
             darkTheme: dark
-            reactionsEnabled: 1
+            reactionsEnabled: 0
             emitMetadata: 0
             loading: 
             inputPosition: bottom
