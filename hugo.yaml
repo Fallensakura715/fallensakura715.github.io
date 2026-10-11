@@ -54,6 +54,7 @@ params:
         allowedHosts:
             - falnsakura.top
             - www.falnsakura.top
+            - nav.falnsakura.top
             - fallensakura715.github.io
     visitorMap:
         enabled: true
@@ -180,7 +181,7 @@ params:
             darkTheme: dark
             reactionsEnabled: 1
             emitMetadata: 0
-            loading: lazy
+            loading: 
             inputPosition: bottom
             lang: en
 
