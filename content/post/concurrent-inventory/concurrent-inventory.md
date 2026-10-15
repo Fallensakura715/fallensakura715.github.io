@@ -6,6 +6,7 @@ tags:
   - Java
   - Spring
   - 数据库
+  - mall
 categories:
   - 技术
 image: https://imgu.falnsakura.top/PicGo/2026/09/54ad7b4da404bb8dca94e669358385b7.png
