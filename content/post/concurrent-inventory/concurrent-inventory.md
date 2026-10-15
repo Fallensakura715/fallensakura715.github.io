@@ -1,5 +1,6 @@
 ---
 title: 并发下库存预占与扣减的问题
+slug: concurrent-inventory
 date: 2026-09-11 17:28:50
 tags:
   - 后端

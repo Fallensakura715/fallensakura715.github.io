@@ -1,5 +1,6 @@
 ---
 title: Claude Code 使用方法
+slug: claude-code-intro
 date: 2026-03-16 10:13:25
 tags:
   - AI

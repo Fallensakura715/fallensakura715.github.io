@@ -1,5 +1,6 @@
 ---
 date: 2026-10-15T15:31:28+08:00
+slug: idempotent
 draft: false
 title: 订单幂等与支付回调改造
 image: https://imgu.falnsakura.top/PicGo/2026/10/8a2585dc8d80efbea2282a17ef3228dc.webp

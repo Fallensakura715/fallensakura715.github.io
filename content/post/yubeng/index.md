@@ -1,5 +1,6 @@
 ---
 date: 2026-10-11T20:34:01+08:00
+slug: yubeng
 draft: false
 title: 雨崩，下次再见
 image: https://imgu.falnsakura.top/PicGo/2026/10/6e0a8bf6152905952940cc15d79031e4.webp

@@ -1,5 +1,6 @@
 ---
 title: 使用 Cloudflare Tunnel 给 Huggingface Space 自定义域名
+slug: hf-space-custom-domain
 date: 2026-01-15 15:08:57
 tags:
   - cloudflare

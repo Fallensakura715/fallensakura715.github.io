@@ -1,5 +1,6 @@
 ---
 title: Spring 是如何利用“三级缓存”解决循环依赖的?
+slug: spring-circular-dependencies
 date: 2026-01-25 13:40:57
 tags:
   - 后端

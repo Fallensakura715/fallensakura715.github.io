@@ -1,5 +1,6 @@
 ---
 title: Uptime Kuma，颜值与实力并存的开源监控神器
+slug: intro-uptimekuma
 date: 2026-02-02 20:20:24
 tags:
   - UptimeKuma

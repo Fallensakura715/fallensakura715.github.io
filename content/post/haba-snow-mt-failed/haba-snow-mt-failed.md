@@ -1,5 +1,6 @@
 ---
 title: 哈巴雪山，止步4500，但我还是很想念那里
+slug: haba-snow-mt-failed
 date: 2026-05-06 20:36:11
 tags:
   - 徒步

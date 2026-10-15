@@ -1,5 +1,6 @@
 ---
 title: Spring 中 @Transactional 的生效条件与失效场景
+slug: about-transactional
 description: 
 date: 2026-02-02 11:08:38
 tags:

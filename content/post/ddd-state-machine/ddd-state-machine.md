@@ -1,5 +1,6 @@
 ---
 title: 拒绝 if-else：基于 DDD 与状态机的订单业务
+slug: ddd-state-machine
 date: 2026-01-20 10:56:07
 tags:
 - DDD

@@ -1,5 +1,6 @@
 ---
 title: HTTP、Cookie与OAuth认证：API逆向与后端数据的抓取
+slug: get-backend-apis
 date: 2026-01-16 11:40:31
 tags:
   - 后端

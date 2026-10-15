@@ -1,5 +1,6 @@
 ---
 title: 使用 Cloudflare R2 零成本搭建个人图床
+slug: cloudflare-r2
 date: 2026-01-13 10:37:05
 tags:
   - cloudflare
