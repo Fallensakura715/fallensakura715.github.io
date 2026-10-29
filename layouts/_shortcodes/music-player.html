@@ -1,13 +1,26 @@
 {{- $music := .Page.Params.music | default .Page.Site.Params.music -}}
-{{- $id := $music.playlistId -}}
+{{- $playlists := $music.playlists -}}
+{{- if not $playlists -}}
+    {{- $playlists = slice (dict "id" $music.playlistId "label" $music.playlistId) -}}
+{{- end -}}
+{{- $id := $music.playlistId | default (index (index $playlists 0) "id") -}}
 {{- $zh := eq .Page.Language.Lang "zh" -}}
 {{- if not $id -}}
     {{- errorf "Music page %s is missing music.playlistId" .Page.File.Path -}}
 {{- end -}}
-<section class="music-player" data-music-player data-playlist-id="{{ $id }}" data-api="{{ $music.api }}" data-source-apis="{{ $music.sourceApis | default slice | jsonify }}" data-language="{{ .Page.Language.Lang }}">
+<section class="music-player" data-music-player data-playlist-id="{{ $id }}" data-playlists="{{ $playlists | jsonify }}" data-api="{{ $music.api }}" data-source-apis="{{ $music.sourceApis | default slice | jsonify }}" data-language="{{ .Page.Language.Lang }}">
     <div class="music-player__intro">
-        <p>{{ if $zh }}听点音乐，慢慢逛。{{ else }}Some music while you browse.{{ end }}</p>
-        <a href="https://music.163.com/#/playlist?id={{ $id }}" target="_blank" rel="noopener noreferrer">{{ if $zh }}在网易云打开歌单{{ else }}Open playlist on NetEase{{ end }}</a>
+        <p>{{ if $zh }}浏览时听点音乐吧。{{ else }}Some music while you browse.{{ end }}</p>
+        <div class="music-player__controls">
+            <label for="music-playlist-select-{{ $id }}">{{ if $zh }}选择歌单{{ else }}Choose playlist{{ end }}</label>
+            <select id="music-playlist-select-{{ $id }}" data-music-playlist aria-label="{{ if $zh }}选择歌单{{ else }}Choose playlist{{ end }}">
+                {{- range $playlist := $playlists -}}
+                    {{- $playlistID := printf "%v" $playlist.id -}}
+                    <option value="{{ $playlistID }}"{{ if eq $playlistID (printf "%v" $id) }} selected{{ end }}>{{ $playlist.label | default $playlistID }}</option>
+                {{- end -}}
+            </select>
+            <a data-music-link href="https://music.163.com/#/playlist?id={{ $id }}" target="_blank" rel="noopener noreferrer">{{ if $zh }}在网易云打开歌单{{ else }}Open playlist on NetEase{{ end }}</a>
+        </div>
     </div>
     <p class="music-player__status" data-music-status role="status" aria-live="polite">{{ if $zh }}正在加载歌单…{{ else }}Loading playlist…{{ end }}</p>
     <button class="music-player__retry" data-music-retry type="button" hidden>{{ if $zh }}重新加载{{ else }}Retry{{ end }}</button>

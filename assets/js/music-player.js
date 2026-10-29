@@ -35,12 +35,19 @@
     }
 
     function songID(track) {
-        try {
-            const id = track.id || new URL(track.url).searchParams.get("id");
-            return /^\d+$/.test(String(id)) ? String(id) : "";
-        } catch {
-            return "";
+        const values = [track.id, track.songId, track.song_id];
+        for (const value of values) {
+            if (/^\d+$/.test(String(value || ""))) return String(value);
         }
+        for (const value of [track.url, track.pic, track.lrc]) {
+            try {
+                const id = new URL(value).searchParams.get("id");
+                if (/^\d+$/.test(String(id || ""))) return String(id);
+            } catch {
+                // A malformed optional URL is handled by the caller.
+            }
+        }
+        return "";
     }
 
     // Meting type=url endpoints redirect to, or stream, the audio. Let the
@@ -130,14 +137,18 @@
                     media.addEventListener("play", onPlay);
                     media.addEventListener("pause", stopTimer);
                 }
-                const urls = apis.map((endpoint) => {
+                const directURL = mediaURL(track.url);
+                const urls = [];
+                if (directURL && songID({ url: directURL }) === track.songId) {
+                    urls.push(directURL);
+                }
+                urls.push(...apis.map((endpoint) => {
                     const url = new URL(endpoint);
                     url.searchParams.set("server", "netease");
                     url.searchParams.set("type", "url");
                     url.searchParams.set("id", track.songId);
                     return url.href;
-                });
-                if (track.url) urls.push(track.url);
+                }));
                 active = { urls: [...new Set(urls)], index: 0, loaded: false, acceptShort: false };
                 active.url = active.urls[0];
                 // preload=none keeps unselected songs from loading audio.
@@ -161,43 +172,72 @@
         const status = section.querySelector("[data-music-status]");
         const retry = section.querySelector("[data-music-retry]");
         const container = section.querySelector("[data-music-container]");
+        const playlistSelect = section.querySelector("[data-music-playlist]");
+        const playlistLink = section.querySelector("[data-music-link]");
+        let playlists = [];
         let player;
         let sourceLoader;
-        let loading = false;
+        let requestController;
+        let requestToken = 0;
 
-        async function loadPlaylist() {
-            if (loading) return;
-            loading = true;
+        try {
+            playlists = JSON.parse(section.dataset.playlists || "[]").filter((playlist) => /^\d+$/.test(String(playlist.id)));
+        } catch {
+            playlists = [];
+        }
+
+        function setPlaylistLink(id) {
+            if (!playlistLink) return;
+            playlistLink.href = `https://music.163.com/#/playlist?id=${encodeURIComponent(id)}`;
+        }
+
+        async function loadPlaylist(playlistId = section.dataset.playlistId) {
+            if (!/^\d+$/.test(String(playlistId))) return;
+            const token = ++requestToken;
+            requestController?.abort();
+            requestController = new AbortController();
             retry.hidden = true;
             status.textContent = messages.loading;
             section.setAttribute("aria-busy", "true");
-            const controller = new AbortController();
+            section.dataset.playlistId = String(playlistId);
+            setPlaylistLink(String(playlistId));
+            sourceLoader?.dispose();
+            player?.destroy();
+            sourceLoader = null;
+            player = null;
+            const controller = requestController;
             const timeout = setTimeout(() => controller.abort(), 15000);
 
             try {
                 const api = new URL(section.dataset.api);
                 api.searchParams.set("server", "netease");
                 api.searchParams.set("type", "playlist");
-                api.searchParams.set("id", section.dataset.playlistId);
-                const response = await fetch(api, { signal: controller.signal });
+                api.searchParams.set("id", String(playlistId));
+                const response = await fetch(api, { signal: requestController.signal });
                 if (!response.ok) throw new Error(`Playlist HTTP ${response.status}`);
                 const data = await response.json();
                 if (!Array.isArray(data)) throw new Error("Invalid playlist response");
                 const sourceApis = JSON.parse(section.dataset.sourceApis || "[]").map(mediaURL).filter(Boolean);
-                const audio = data.map((track) => ({
-                    name: String(track.name || "Untitled"),
-                    artist: String(track.artist || ""),
-                    url: mediaURL(track.url),
-                    cover: mediaURL(track.pic),
-                    lrc: mediaURL(track.lrc),
-                    songId: songID(track),
-                    type: sourceApis.length && songID(track) ? "meting-sources" : "normal",
-                })).filter((track) => track.url);
+                const audio = data.map((track) => {
+                    if (!track || typeof track !== "object") return null;
+                    const id = songID(track);
+                    const url = mediaURL(track.url);
+                    if (!id || (sourceApis.length === 0 && !url)) return null;
+                    return {
+                        name: String(track.name || "Untitled"),
+                        artist: String(track.artist || ""),
+                        url: sourceApis.length ? "" : url,
+                        cover: mediaURL(track.pic),
+                        lrc: mediaURL(track.lrc),
+                        songId: id,
+                        type: sourceApis.length ? "meting-sources" : "normal",
+                    };
+                }).filter(Boolean);
                 if (!audio.length) throw new Error("Empty playlist");
                 if (typeof window.APlayer !== "function") throw new Error("APlayer unavailable");
 
-                sourceLoader?.dispose();
-                player?.destroy();
+                if (token !== requestToken) return;
+
                 sourceLoader = createSourceLoader(sourceApis, status, messages);
                 player = new window.APlayer({
                     container,
@@ -218,17 +258,21 @@
                 player.on("error", () => { status.textContent = messages.unavailable; });
                 player.on("listswitch", () => { status.textContent = messages.ready(audio.length); });
             } catch (error) {
+                if (error.name === "AbortError" || token !== requestToken) return;
                 status.textContent = messages.failed;
                 retry.hidden = false;
                 console.warn("Music playlist could not be loaded:", error);
             } finally {
                 clearTimeout(timeout);
-                loading = false;
-                section.removeAttribute("aria-busy");
+                if (token === requestToken) {
+                    section.removeAttribute("aria-busy");
+                }
             }
         }
 
-        retry.addEventListener("click", loadPlaylist);
-        loadPlaylist();
+        playlistSelect?.addEventListener("change", () => loadPlaylist(playlistSelect.value));
+        retry.addEventListener("click", () => loadPlaylist(section.dataset.playlistId));
+        setPlaylistLink(section.dataset.playlistId);
+        loadPlaylist(section.dataset.playlistId);
     });
 })();

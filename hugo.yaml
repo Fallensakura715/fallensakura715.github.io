@@ -62,6 +62,13 @@ params:
         statsUrl: https://mapmyvisitors.com/web/1c0w9
     music:
         playlistId: "12682020018"
+        playlists:
+            - id: "12682020018"
+              label: "主歌单"
+            - id: "13042802774"
+              label: "循环歌单"
+            - id: "911261482"
+              label: "喜欢的歌"
         api: https://api.injahow.cn/meting/
         sourceApis:
             - https://music.duanjinglin.com/api
