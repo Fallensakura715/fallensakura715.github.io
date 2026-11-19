@@ -18,7 +18,7 @@ image:
 
 前面已经看到：HTTPS 内容可以加密，但传统 ClientHello 中的 SNI 仍然可能暴露域名，ECH 就是为解决这个问题，对 ClientHello 进行加密。
 
-可以把 ECH 理解为：客户端构造一份受到加密保护的内部 ClientHello，同时发送一份对外可见的外部 ClientHello。
+可以把 ECH 理解为：客户端构造一份包含真实 SNI 的内部 ClientHello，给它加密，同时发送一份对外可见的外部 ClientHello，写着 ECH 的 SNI。
 
 #### 双 ClientHello
 
@@ -28,74 +28,72 @@ image:
 
 ECH 的关键难点在于：**在尚未与服务器建立 TLS 连接前，客户端如何获取加密 `ClientHelloInner` 的公钥？**
 
-这一问题依赖于安全的 DNS 记录（HTTPS / SVCB 资源记录，DoT，DoH）与 **HPKE（混合公钥加密标准）**。
+这一问题依赖于安全的 DNS 记录（HTTPS / SVCB，DoT，DoH）与 **HPKE（混合公钥加密标准）**。
 
 ![image.png](https://imgu.falnsakura.top/PicGo/2026/11/e00947ac0ac1de1b72ee05549e237f35.webp)
 
 1. 密钥分发（DNS HTTPS 记录）
-	客户端通过 **DoH（DNS over HTTPS）** 或 **DoT（DNS over TLS）** 向受信任的 DNS 服务器请求目标域名的 `HTTPS` 记录（RFC 9460）。 返回的参数中包含 `ech` 字段（即 `ECHConfigList`），其内容包括：
+	客户端通过 **DoH（DNS over HTTPS）** 或 **DoT（DNS over TLS）** 向受信任的 DNS 服务器请求目标域名的 `HTTPS`（或 `SVCB`）记录。 返回的参数中包含 `ech` 字段（即 `ECHConfigList`），其内容包括：
 	- **Public Name**：外层诱饵域名（如 `cdn-provider.com`）。
 	- **HPKE 公钥**：服务端的长效非对称公钥。
 	- **支持的 KEM/KDF/AEAD 算法**：如 `DHKEM(X25519, HKDF-SHA256)` + `AES-128-GCM`。
-> 	**注**：如果 DNS 请求仍使用传统的明文 UDP 53 端口，中间人依然可以通过 DNS 嗅探出用户访问的目标，因此 **ECH 必须与加密 DNS（DoH/DoT）配合使用**。
+> 	如果 DNS 请求仍使用传统的明文 UDP 53 端口，中间人依然可以通过 DNS 嗅探出用户访问的目标，因此 **ECH 必须与加密 DNS（DoH/DoT）配合使用**。
 
-2. HPKE 加密（Hybrid Public Key Encryption，RFC 9180）
-	客户端利用 `ECHConfigList` 中的公钥，通过 HPKE 协议计算出一个共享密钥，并使用 AEAD 算法（如 AES-GCM）对序列化后的 `ClientHelloInner` 进行对称加密，生成密文（Payload）和一段临时公钥（Encapsulated Key, `enc`），嵌入 `ClientHelloOuter` 的扩展中。
+2. HPKE 加密（Hybrid Public Key Encryption）
+	客户端提取 `ECHConfigList` 中的服务端公钥，通过 HPKE 协议派生出对称加密密钥，并使用 AEAD 算法（如 AES-GCM）将包含真实 SNI、真实 ALPN 的 **`ClientHelloInner`** 序列化加密。
+   随后，客户端将这段密文（Payload）连同 HPKE 临时公钥（Encapsulated Key, `enc`）一起打包成一个名为 `encrypted_client_hello` 的扩展，塞入外层的 **`ClientHelloOuter`**（比如下图的明文 SNI 填写为 `cloudflare-ech.com`）中发往服务端。
 
 3. 服务端处理与解密
 	处于前端的 CDN 边缘服务器或反向代理网关收到 `ClientHelloOuter`：
-	- **解密成功**：网关用本地持有的私钥解密 `encrypted_client_hello`，还原出 `ClientHelloInner`。随后完全丢弃 `ClientHelloOuter`，内部状态机重置，使用 `ClientHelloInner` 继续完成后续的 TLS 握手。
-	- **解密失败（配置过期/公钥轮换）**：如果客户端使用的 ECH 公钥已被服务端淘汰，服务端会退而使用 `ClientHelloOuter` 完成外层握手，并在随后的 `EncryptedExtensions` 中返回最新的合法 `ECHConfigList`。客户端收到后自动静默重试，避免连接中断。
+	- **解密成功**：网关用本地持有的私钥解密 `encrypted_client_hello`，还原出 `ClientHelloInner`。随后完全丢弃 `ClientHelloOuter`，内部状态机重置，使用 `ClientHelloInner` 的真实 SNI 继续完成后续的 TLS 握手。
+	- **解密失败（配置过期/公钥轮换）**：如果客户端使用的 ECH 公钥已被服务端淘汰，服务端会退而使用 `ClientHelloOuter` 完成外层握手，并在随后的 `EncryptedExtensions` 中返回最新的合法 `retry_configs`（最新合法的 `ECHConfigList`）。
 
 ![image.png](https://imgu.falnsakura.top/PicGo/2026/11/d11e91c7abaebdd1bd8958f031f8dd01.webp)
 
-这是 Cloudflare 的 ECH，原本不加密的 SNI 就无法被看到，只有 `cloudflare-ech.com`。
+这是 Cloudflare 的 ECH，原本不加密的 SNI 无法被看到，只有 `cloudflare-ech.com`。
 
 ![image.png](https://imgu.falnsakura.top/PicGo/2026/11/5aac67111af6fbd9bcc9503533ae9c7d.png)
 
 #### QUIC 的 TLS 握手
 
-虽然 QUIC 的握手包经过了加密，但是它的密钥是公开的，谁都能拿到然后解密，相当于 ClientHello 并没有加密。
+虽然 QUIC 的握手包经过了加密，但**QUIC Initial 包的加密密钥是公开的**。QUIC 发第一个包的时候，为了**防止路由器和中间件僵化（网络设备偷看并死记硬背协议明文字段）**，QUIC 规定使用客户端明文发出的 `目标连接 ID (DCID)`，结合 **RFC 标准文档里直接写死的一串固定 Salt**，通过 HKDF 算出初始密钥来加密 `ClientHello`。任何 DPI 审查设备只要照着 RFC 规范代入公式算一下，就能解开 QUIC 的 `Initial` 包，看到里面 `ClientHello` 的明文 SNI。
 
 ### 连接复用、保活与填充
 
 #### 连接复用
 
-第一篇也讲过，建立一条安全连接的开销极高（TCP 握手 1-RTT + TLS 1.3 握手 1-RTT + 慢启动拥塞窗口调整）。连接复用的核心目标是尽可能减少新建连接的握手开销与握手往返延迟（RTT）。它在网络分层中存在多级实现：
+第一篇也讲过，建立一条安全连接的开销极高（TCP 握手 1-RTT + TLS 1.3 握手 1-RTT + TCP 慢启动拥塞窗口）。连接复用的核心目标是尽可能减少新建连接的握手开销与握手往返延迟（RTT）。它在网络分层中存在多级实现：
 
 - 连接复用（连接池）：同一条 TCP/TLS 连接反复使用，不用每次重新握手。省掉 TCP 三次握手和 TLS 握手，也避免短时间内向同一个 IP:端口反复发起大量 TLS 握手这种明显的行为特征。
-
-- 多路复用（Multiplexing）：一条连接里同时跑多个逻辑流，每个流有自己的 ID。典型实现有 Mux.Cool、smux/yamux、HTTP/2 的 stream。
-
+- 应用层多路复用：一条连接里同时跑多个逻辑流，每个流有自己的 ID。典型实现有 Mux.Cool、smux/yamux、HTTP/2 的 stream。
 - 传输层多路复用：前面提到的 QUIC 就是一条 QUIC 连接里可以同时开很多个 Stream，每个 Stream 有独立的顺序和重传。某个 Stream 丢包，只阻塞它自己，其他 Stream 照常收发。这正好解决了前面说的 TCP 多路复用的队头阻塞问题：HTTP/2 在应用层有多个流，但底下仍是一条 TCP，丢一个包全部卡住。
  
 #### 保活机制
 
-保活机制用于在没有业务数据传输的空闲期，确认物理链路是否依然通畅、对端主机是否存活，并防止链路上的中间设备（NAT 网关、防火墙）因会话空闲超时而强制断开连接。
+既然长连接与多路复用需要让连接长期处于打开状态，那么在没有业务数据传输的空闲期，如何确认对面是不是活着的？又如何防止中间设备（家用路由器 NAT、运营商 CGNAT、防火墙）因为会话空闲超时掐断连接？这就需要**保活机制**。
 
 ##### 1. TCP 传输层 Keepalive
 
 TCP Keepalive 由操作系统网络栈维护，默认通过 Socket 选项 `SO_KEEPALIVE` 开启。
 
 * **工作机制**：
-	当连接在设定的空闲时间没有收到任何数据包时，本地协议栈会自动发送一个**不包含有效载荷的探测 ACK 包**（其序列号被设置为当前确认序号减 1：$\text{Seq} = \text{SND.UNA} - 1$）。对端收到后会回送一个正常的 ACK。
+	当连接空闲超过设定阈值时，本地协议栈会自动发送一个**不包含有效数据的探测 ACK 包**（其序列号被故意设置为当前确认序号减 1：$\text{Seq} = \text{SND.UNA} - 1$）。对端收到后会回送一个正常的 ACK。
 * **三个核心内核参数（Linux）**：
 	* `tcp_keepalive_time`（默认 7200 秒 / 2 小时）：连接空闲多久后开始发送第一次保活探测。
 	* `tcp_keepalive_intvl`（默认 75 秒）：若未收到响应，后续每次探测的重发间隔。
-	* `tcp_keepalive_probes`（默认 9 次）：连续未收到响应达到该次数后，内核强制将连接置为失效，向应用层返回连接重置错误（ETIMEDOUT / ECONNRESET）。
+	* `tcp_keepalive_probes`（默认 9 次）：连续未收到响应达到该次数后，内核强制将连接置为失效，向应用层返回 ETIMEDOUT 错误。
 * **主要作用**：
-	1. **检测死链**：探测对端机器断电、内核崩溃、网线拔出等未发送 FIN 包的“静默死亡”。
-	2. **维持 NAT 映射状态**：家庭路由器与运营商 CGNAT 网关维护着内存映射表（NAT Session Table）。若空闲超过超时时间（通常仅数十秒至几分钟），映射关系被抹去，后续入网流量将被直接丢弃。
+	1. **检测死链**：探测对端机器断电、内核崩溃、网线拔出等未发送 FIN 包的静默死亡。
+	2. **维持 NAT 映射状态**：家庭路由器与运营商 CGNAT 网关维护着内存映射表。若空闲超过超时时间（通常仅数十秒至几分钟），映射关系被抹去，后续入网流量将被直接丢弃。
 
 ##### 2. 应用层心跳
 
-TCP Keepalive 的探测间隔过长，且无法判断“操作系统仍在线，但上层服务进程已死锁/崩溃”的情况，因此现代应用协议均自研应用层心跳：WebSocket ping/pong、HTTP/2 PING、OpenVPN 的 keepalive 指令，以及 AnyTLS 协议 v2 增强的超时处理和心跳。
-
-这是双刃剑：规律的心跳（固定间隔、固定大小）本身就是指纹，所以有的协议会加随机化。
+TCP Keepalive 的探测间隔过长，且无法判断操作系统仍在线，但上层服务进程已死锁/崩溃的情况，因此现代应用协议均自研应用层心跳：WebSocket ping/pong、HTTP/2 PING、OpenVPN 的 keepalive 指令，以及 **AnyTLS v2** 专门增强的超时处理与心跳包。
+> 如果一条长连接每隔固定 30 秒就准时互发一个固定 16 字节的心跳包，这种特征非常明显。因此优秀的现代代理协议在设计心跳时，都会引入**时间抖动（Jitter，如 15~45 秒随机间隔）** 与 **随机长度填充**。
 
 #### 三、 填充机制（Padding）
 
-在加密协议中，密文经过加密并不等于完全隐藏信息。**密文的字节长度本身就是一种严重的元数据泄露**。填充机制从密码学数学要求演进为了抵御**流量分析**与**侧信道攻击**的关键工具。
+在加密协议中，密文经过加密并不等于完全隐藏信息。**密文的字节长度本身就是一种严重的元数据泄露**。Padding 从密码学数学要求演进为了抵御**流量分析**与**侧信道攻击**的关键工具。
 
 ##### 1. 密码学分组对齐填充
 
